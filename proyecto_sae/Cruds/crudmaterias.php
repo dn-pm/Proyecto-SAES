@@ -55,7 +55,7 @@ if (isset($_GET["nuevo"])) {
 
 // ---------- LISTADO ----------
 $resultado = $mysqli->query("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos FROM materias WHERE ESTATUS = 'ALTA'");
-$materias = $resultado->fetch_all(MYSQLI_ASSOC);
+$materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -83,10 +83,10 @@ $materias = $resultado->fetch_all(MYSQLI_ASSOC);
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Catálogos</a>
           <ul class="dropdown-menu bg-dark">
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudalumnos.php">Alumnos</a></li>
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudprofesores.php">Profesores</a></li>
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudgrupos.php">Grupos</a></li>
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudmaterias.php">Materias</a></li>
+            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudalumnos.php">Alumnos</a>[span_9](start_span)[span_9](end_span)</li>
+            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudprofesores.php">Profesores</a>[span_10](start_span)[span_10](end_span)</li>
+            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudgrupos.php">Grupos</a>[span_11](start_span)[span_11](end_span)</li>
+            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudmaterias.php">Materias</a>[span_12](start_span)[span_12](end_span)</li>
           </ul>
         </li>
       </ul>
