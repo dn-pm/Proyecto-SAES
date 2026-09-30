@@ -1,12 +1,19 @@
-    <style>
-        /* Color de la barra de la tabla (Matrícula, Nombre, Email, etc.) */
-        thead.thead-dark th { 
-            background-color: #0d6efd; /* Cambia este color por el que tú quieras */
-            color: #ffffff; /* Color del texto (blanco) */
-        }
-
-        /* Color del título "Catálogo de Alumnos" por separado */
-        h1 { 
-            color: #2c3e50; 
-        }
-    </style>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Matrícula</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Apellido Paterno</th>
+                <th scope="col">Apellido Materno</th>
+                <th scope="col">Domicilio</th>
+                <th scope="col">Email</th>
+                <!-- El botón de + queda en la primera columna (arriba del botón azul) -->
+                <th scope="col">
+                    <a href="crudalumnos.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar" data-bs-toggle="modal" data-bs-target="#modalAlumno">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                </th>
+                <!-- La celda vacía va después -->
+                <th scope="col"></th>
+            </tr>
+        </thead>
