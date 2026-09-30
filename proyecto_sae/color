@@ -1,0 +1,12 @@
+    <style>
+        /* Color de la barra de la tabla (Matrícula, Nombre, Email, etc.) */
+        thead.thead-dark th { 
+            background-color: #0d6efd; /* Cambia este color por el que tú quieras */
+            color: #ffffff; /* Color del texto (blanco) */
+        }
+
+        /* Color del título "Catálogo de Alumnos" por separado */
+        h1 { 
+            color: #2c3e50; 
+        }
+    </style>
