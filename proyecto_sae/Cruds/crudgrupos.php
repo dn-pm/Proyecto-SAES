@@ -72,27 +72,7 @@ $grupos = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/proyecto_sae/principal.php">Proyecto SAE</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="menuPrincipal">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Catálogos</a>
-          <ul class="dropdown-menu bg-dark">
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudalumnos.php">Alumnos</a>[span_5](start_span)[span_5](end_span)</li>
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudprofesores.php">Profesores</a>[span_6](start_span)[span_6](end_span)</li>
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudgrupos.php">Grupos</a>[span_7](start_span)[span_7](end_span)</li>
-            <li><a class="dropdown-item text-light" href="/proyecto_sae/Cruds/crudmaterias.php">Materias</a>[span_8](start_span)[span_8](end_span)</li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
+<?php include __DIR__ . "/../NavBar/navbar.php"; ?>
 
 <div class="container">
     <br><br>

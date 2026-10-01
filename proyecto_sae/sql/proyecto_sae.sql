@@ -1,5 +1,7 @@
 -- =========================================================
--- Proyecto SAE - Script de creación de base de datos
+-- Proyecto SAE - Base de datos alineada con los crud*.php
+-- OJO: borra y recrea profesores, grupos y materias
+-- (se pierden los datos de esas tablas). alumnos no se toca.
 -- =========================================================
 
 CREATE DATABASE IF NOT EXISTS proyecto_sae
@@ -8,9 +10,6 @@ CREATE DATABASE IF NOT EXISTS proyecto_sae
 
 USE proyecto_sae;
 
--- ---------------------------------------------------------
--- Tabla: alumnos
--- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS alumnos (
     ID_ALUMNOS        INT AUTO_INCREMENT PRIMARY KEY,
     MATRICULA         VARCHAR(15) NOT NULL,
@@ -23,37 +22,35 @@ CREATE TABLE IF NOT EXISTS alumnos (
     ESTATUS           VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
 );
 
--- ---------------------------------------------------------
--- Tabla: grupo
--- ---------------------------------------------------------
-CREATE TABLE IF NOT EXISTS grupo (
-    ID_GRUPO        INT AUTO_INCREMENT PRIMARY KEY,
-    NOMBRE_G        VARCHAR(15) NOT NULL,
-    DESCRIPCION_G   VARCHAR(80) NOT NULL,
-    ESTATUS_G       VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
-);
+-- Tablas viejas que ya no se usan
+DROP TABLE IF EXISTS grupo;
+DROP TABLE IF EXISTS grupos;
+DROP TABLE IF EXISTS materias;
+DROP TABLE IF EXISTS profesores;
 
--- ---------------------------------------------------------
--- Tabla: materias
--- ---------------------------------------------------------
-CREATE TABLE IF NOT EXISTS materias (
-    ID_MATERIA      INT AUTO_INCREMENT PRIMARY KEY,
-    NOMBRE_M        VARCHAR(15) NOT NULL,
-    DESCRIPCION_M   VARCHAR(80) NOT NULL,
-    ESTATUS_M       VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
-);
-
--- ---------------------------------------------------------
--- Tabla: profesores
--- ---------------------------------------------------------
-CREATE TABLE IF NOT EXISTS profesores (
+CREATE TABLE profesores (
     ID_PROFESORES     INT AUTO_INCREMENT PRIMARY KEY,
-    NUMERO_EMPLEADO   VARCHAR(15) NOT NULL,
+    CLAVE             VARCHAR(15) NOT NULL,
     NOMBRE            VARCHAR(30) NOT NULL,
     APELLIDO_PATERNO  VARCHAR(15) NOT NULL,
     APELLIDO_MATERNO  VARCHAR(15) NOT NULL,
-    DOMICILIO         VARCHAR(80) NOT NULL,
     CORREO            VARCHAR(50) NOT NULL,
     TELEFONO          VARCHAR(35) NOT NULL,
     ESTATUS           VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
+);
+
+CREATE TABLE grupos (
+    ID_GRUPOS     INT AUTO_INCREMENT PRIMARY KEY,
+    NOMBRE_GRUPO  VARCHAR(20) NOT NULL,
+    TURNO         VARCHAR(15) NOT NULL,
+    SEMESTRE      VARCHAR(10) NOT NULL,
+    ESTATUS       VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
+);
+
+CREATE TABLE materias (
+    ID_MATERIAS     INT AUTO_INCREMENT PRIMARY KEY,
+    CLAVE_MATERIA   VARCHAR(15) NOT NULL,
+    NOMBRE_MATERIA  VARCHAR(50) NOT NULL,
+    CREDITOS        VARCHAR(5)  NOT NULL,
+    ESTATUS         VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
 );

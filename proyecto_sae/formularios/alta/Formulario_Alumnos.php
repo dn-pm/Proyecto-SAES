@@ -53,6 +53,7 @@ if (isset($_POST["guardar"])) {
 </head>
 
 <body class="bg-light">
+<?php include __DIR__ . "/../../NavBar/navbar.php"; ?>
 
 <div class="container mt-5">
 
@@ -292,6 +293,7 @@ if (isset($_POST["guardar"])) {
 
 </div>
 
-</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+</body>
 </html>
