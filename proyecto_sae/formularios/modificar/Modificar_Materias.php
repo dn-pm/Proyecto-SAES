@@ -12,12 +12,13 @@ if (isset($_POST["actualizar"])) {
         $clavemateria = $_POST["clavemateria"];
         $nombremateria = $_POST["nombremateria"];
         $creditos = $_POST["creditos"];
+        $descripcion = $_POST["descripcion"];
         $estatus = $_POST["estatus"];
 
     try {
-        $sql = "UPDATE materias SET CLAVE_MATERIA = ?, NOMBRE_MATERIA = ?, CREDITOS = ?, ESTATUS = ? WHERE ID_MATERIAS = ?";
+        $sql = "UPDATE materias SET CLAVE_MATERIA = ?, NOMBRE_MATERIA = ?, CREDITOS = ?, DESCRIPCION = ?, ESTATUS = ? WHERE ID_MATERIAS = ?";
         $stmt = $conexion->prepare($sql);
-        $stmt->bind_param("ssssi", $clavemateria, $nombremateria, $creditos, $estatus, $id);
+        $stmt->bind_param("sssssi", $clavemateria, $nombremateria, $creditos, $descripcion, $estatus, $id);
         $stmt->execute();
         $stmt->close();
         $mensaje = "Materia actualizada correctamente.";
@@ -52,7 +53,7 @@ if ($materia === null) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modificar Materias</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
@@ -99,6 +100,11 @@ if ($materia === null) {
                         <label class="form-label">Créditos</label>
                         <input type="text" name="creditos" class="form-control" maxlength="5" required
                                value="<?php echo htmlspecialchars($materia["CREDITOS"]); ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción de la materia</label>
+                        <textarea name="descripcion" class="form-control" rows="3" maxlength="255" required><?php echo htmlspecialchars($materia["DESCRIPCION"]); ?></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -152,7 +158,7 @@ if ($materia === null) {
             <div class="text-center mt-3">
                 <a href="../alta/Formulario_Materias.php">Registrar nueva materia</a>
                 &nbsp;|&nbsp;
-                <a href="../../principal.php">Regresar al menú</a>
+                <a href="<?= $base ?>/Cruds/crudmaterias.php">Ir al catálogo</a>
             </div>
 
         </div>
@@ -165,7 +171,7 @@ if ($materia === null) {
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

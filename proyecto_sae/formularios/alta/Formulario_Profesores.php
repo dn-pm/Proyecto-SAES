@@ -1,218 +1,90 @@
 <?php
-
-require_once "../../config/conexion.php";
+require_once __DIR__ . "/../../config/conexion.php";
 
 $mostrarDatos = false;
 $error = "";
 
 if (isset($_POST["guardar"])) {
-
-    $numeroEmpleado  = $_POST["numeroEmpleado"];
+    $clave           = $_POST["clave"];
     $nombre          = $_POST["nombre"];
     $apellidoPaterno = $_POST["apellidoPaterno"];
     $apellidoMaterno = $_POST["apellidoMaterno"];
-    $domicilio       = $_POST["domicilio"];
     $correo          = $_POST["correo"];
     $telefono        = $_POST["telefono"];
 
-    $sql = "INSERT INTO profesores (NUMERO_EMPLEADO, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, DOMICILIO, CORREO, TELEFONO)
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = $conexion->prepare($sql);
-    $stmt->bind_param("sssssss", $numeroEmpleado, $nombre, $apellidoPaterno, $apellidoMaterno, $domicilio, $correo, $telefono);
-
-    if ($stmt->execute()) {
+    try {
+        $sql = "INSERT INTO profesores (CLAVE, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, CORREO, TELEFONO) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("ssssss", $clave, $nombre, $apellidoPaterno, $apellidoMaterno, $correo, $telefono);
+        $stmt->execute();
+        $stmt->close();
         $mostrarDatos = true;
-    } else {
-        $error = "Ocurrió un error al guardar: " . $conexion->error;
+    } catch (mysqli_sql_exception $e) {
+        $error = "Ocurrió un error al guardar: " . $e->getMessage();
     }
-
-    $stmt->close();
 }
-
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Registro de Profesores</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body class="bg-light">
-<?php include __DIR__ . "/../../NavBar/navbar.php"; ?>     
+<?php include __DIR__ . "/../../NavBar/navbar.php"; ?>
 
 <div class="container mt-5">
-
     <div class="card shadow">
 
         <div class="card-header bg-primary text-white text-center">
-
             <h2>Registro de Profesores</h2>
-
         </div>
 
         <div class="card-body">
 
             <?php if ($error !== "") { ?>
-                <div class="alert alert-danger"><?php echo $error; ?></div>
+                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
             <?php } ?>
 
             <form method="POST">
 
-                <!-- Número de empleado -->
-
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Número de empleado
-                    </label>
-
-                    <input
-                        type="text"
-                        name="numeroEmpleado"
-                        class="form-control"
-                        required
-                    >
-
+                    <label class="form-label">Clave</label>
+                    <input type="text" name="clave" class="form-control" maxlength="15" required>
                 </div>
 
-
-                <!-- Nombre -->
-
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Nombre
-                    </label>
-
-                    <input
-                        type="text"
-                        name="nombre"
-                        class="form-control"
-                        required
-                    >
-
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control" maxlength="30" required>
                 </div>
 
-
-                <!-- Apellido paterno -->
-
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Apellido paterno
-                    </label>
-
-                    <input
-                        type="text"
-                        name="apellidoPaterno"
-                        class="form-control"
-                        required
-                    >
-
+                    <label class="form-label">Apellido paterno</label>
+                    <input type="text" name="apellidoPaterno" class="form-control" maxlength="15" required>
                 </div>
 
-
-                <!-- Apellido materno -->
-
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Apellido materno
-                    </label>
-
-                    <input
-                        type="text"
-                        name="apellidoMaterno"
-                        class="form-control"
-                        required
-                    >
-
+                    <label class="form-label">Apellido materno</label>
+                    <input type="text" name="apellidoMaterno" class="form-control" maxlength="15" required>
                 </div>
 
-
-                <!-- Domicilio -->
-
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Domicilio
-                    </label>
-
-                    <input
-                        type="text"
-                        name="domicilio"
-                        class="form-control"
-                        required
-                    >
-
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" name="correo" class="form-control" maxlength="50" required>
                 </div>
 
-
-                <!-- Correo -->
-
                 <div class="mb-3">
-
-                    <label class="form-label">
-                        Correo electrónico
-                    </label>
-
-                    <input
-                        type="email"
-                        name="correo"
-                        class="form-control"
-                        required
-                    >
-
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" name="telefono" class="form-control" maxlength="35" required>
                 </div>
 
-
-                <!-- Teléfono -->
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Teléfono
-                    </label>
-
-                    <input
-                        type="tel"
-                        name="telefono"
-                        class="form-control"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- Botón -->
-
-                <button
-                    type="submit"
-                    name="guardar"
-                    class="btn btn-primary"
-                >
-                    Registrar profesor
-                </button>
+                <button type="submit" name="guardar" class="btn btn-primary">Registrar profesor</button>
 
             </form>
 
-
-            <?php
-
-            if ($mostrarDatos == true) {
-
-            ?>
+            <?php if ($mostrarDatos) { ?>
 
                 <hr>
 
@@ -220,109 +92,34 @@ if (isset($_POST["guardar"])) {
                     Profesor guardado correctamente en la base de datos.
                 </div>
 
-                <h4 class="mb-3">
-                    Información del profesor
-                </h4>
+                <h4 class="mb-3">Información del profesor</h4>
 
                 <table class="table table-bordered">
-
-                    <tr>
-
-                        <th>Número de empleado</th>
-
-                        <td>
-                            <?php echo $numeroEmpleado; ?>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Nombre</th>
-
-                        <td>
-                            <?php echo $nombre; ?>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Apellido paterno</th>
-
-                        <td>
-                            <?php echo $apellidoPaterno; ?>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Apellido materno</th>
-
-                        <td>
-                            <?php echo $apellidoMaterno; ?>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Domicilio</th>
-
-                        <td>
-                            <?php echo $domicilio; ?>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Correo electrónico</th>
-
-                        <td>
-                            <?php echo $correo; ?>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Teléfono</th>
-
-                        <td>
-                            <?php echo $telefono; ?>
-                        </td>
-
-                    </tr>
-
+                    <tr><th>Clave</th><td><?php echo htmlspecialchars($clave); ?></td></tr>
+                    <tr><th>Nombre</th><td><?php echo htmlspecialchars($nombre); ?></td></tr>
+                    <tr><th>Apellido paterno</th><td><?php echo htmlspecialchars($apellidoPaterno); ?></td></tr>
+                    <tr><th>Apellido materno</th><td><?php echo htmlspecialchars($apellidoMaterno); ?></td></tr>
+                    <tr><th>Correo electrónico</th><td><?php echo htmlspecialchars($correo); ?></td></tr>
+                    <tr><th>Teléfono</th><td><?php echo htmlspecialchars($telefono); ?></td></tr>
                 </table>
 
-            <?php
-
-            }
-
-            ?>
+            <?php } ?>
 
             <div class="text-center mt-3">
-                <a href="../modificar/Modificar_Profesores.php">Modificar un profesor existente</a>
+                <a href="<?= $base ?>/formularios/modificar/Modificar_Profesores.php">Modificar un profesor existente</a>
                 &nbsp;|&nbsp;
-                <a href="../../index.php">Regresar al menú</a>
+                <a href="<?= $base ?>/Cruds/crudprofesores.php">Ir al catálogo</a>
             </div>
 
         </div>
 
         <div class="card-footer text-center">
-
             Registro de profesores - Programación II Patlan Medrano Daniel
-
         </div>
 
     </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

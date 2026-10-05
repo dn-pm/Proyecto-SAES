@@ -1,4 +1,5 @@
 <?php
+$base = preg_replace('#/(Cruds|formularios)/.*$#i', '', $_SERVER['SCRIPT_NAME']);
 
 $servidor = "localhost";
 $usuario  = "root";

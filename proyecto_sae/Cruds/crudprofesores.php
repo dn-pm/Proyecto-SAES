@@ -66,8 +66,8 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Profesores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= $base ?>/assets/css/bootstrap-icons.css">
     <style>
         thead.thead-dark th { background-color: #0d6efd; color: #ffffff; }
         h1 { color: #2c3e50; }
@@ -108,12 +108,12 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <td><?php echo htmlspecialchars($profesor["correo"]); ?></td>
                 <td><?php echo htmlspecialchars($profesor["telefono"]); ?></td>
                 <td>
-                    <a href="crudprofesores.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar" data-bs-toggle="modal" data-bs-target="#modalProfesor">
+                    <a href="crudprofesores.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar">
                         <i class="bi bi-plus-lg"></i>
                     </a>
                 </td>
                 <td>
-                    <a href="crudprofesores.php?editar=<?php echo $profesor["idprof"]; ?>" class="btn btn-sm btn-primary" title="Modificar" data-bs-toggle="modal" data-bs-target="#modalProfesor">
+                    <a href="crudprofesores.php?editar=<?php echo $profesor["idprof"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                 </td>
@@ -173,7 +173,13 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('modalProfesor').addEventListener('hidden.bs.modal', function () {
+        window.location.href = 'crudprofesores.php';
+    });
+</script>
+
 <?php if ($abrirModal) { ?>
 <script>
     var modal = new bootstrap.Modal(document.getElementById('modalProfesor'));

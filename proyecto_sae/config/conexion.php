@@ -1,13 +1,9 @@
 <?php
-// =========================================================
-// Archivo de conexión a la base de datos
-// Todos los formularios (de alta y de modificación) incluyen
-// este archivo con: require_once "../../config/conexion.php";
-// =========================================================
+$base = preg_replace('#/(Cruds|formularios)/.*$#i', '', $_SERVER['SCRIPT_NAME']);
 
 $servidor = "localhost";
 $usuario  = "root";
-$password = "";        // Cambia esto si tu MySQL tiene contraseña
+$password = "";        
 $base_datos = "proyecto_sae";
 
 $conexion = new mysqli($servidor, $usuario, $password, $base_datos);

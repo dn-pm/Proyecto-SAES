@@ -68,8 +68,8 @@ $alumnos = $resultado->fetch_all(MYSQLI_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Alumnos</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= $base ?>/assets/css/bootstrap-icons.css">
 
     <style>
         /* Color de la barra de la tabla separado del título */
@@ -121,15 +121,14 @@ $alumnos = $resultado->fetch_all(MYSQLI_ASSOC);
                 
                 <!-- Botón Agregar (+) en cada registro -->
                 <td>
-                    <a href="crudalumnos.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar" data-bs-toggle="modal" data-bs-target="#modalAlumno">
+                    <a href="crudalumnos.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar">
                         <i class="bi bi-plus-lg"></i>
                     </a>
                 </td>
 
                 <!-- Botón Modificar -->
                 <td>
-                    <a href="crudalumnos.php?editar=<?php echo $alumno["idalum"]; ?>" class="btn btn-sm btn-primary" title="Modificar"
-                       data-bs-toggle="modal" data-bs-target="#modalAlumno">
+                    <a href="crudalumnos.php?editar=<?php echo $alumno["idalum"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                 </td>
@@ -198,7 +197,13 @@ $alumnos = $resultado->fetch_all(MYSQLI_ASSOC);
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.getElementById('modalAlumno').addEventListener('hidden.bs.modal', function () {
+        window.location.href = 'crudalumnos.php';
+    });
+</script>
 
 <?php if ($abrirModal) { ?>
 <script>

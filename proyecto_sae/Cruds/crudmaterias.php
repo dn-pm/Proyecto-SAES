@@ -18,13 +18,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $clavemateria  = trim($_POST["clavemateria"] ?? "");
     $nombremateria = trim($_POST["nombremateria"] ?? "");
     $creditos      = trim($_POST["creditos"] ?? "");
+    $descripcion   = trim($_POST["descripcion"] ?? "");
 
     if ($id > 0) {
-        $stmt = $mysqli->prepare("UPDATE materias SET CLAVE_MATERIA = ?, NOMBRE_MATERIA = ?, CREDITOS = ? WHERE ID_MATERIAS = ?");
-        $stmt->bind_param("sssi", $clavemateria, $nombremateria, $creditos, $id);
+        $stmt = $mysqli->prepare("UPDATE materias SET CLAVE_MATERIA = ?, NOMBRE_MATERIA = ?, CREDITOS = ?, DESCRIPCION = ? WHERE ID_MATERIAS = ?");
+        $stmt->bind_param("ssssi", $clavemateria, $nombremateria, $creditos, $descripcion, $id);
     } else {
-        $stmt = $mysqli->prepare("INSERT INTO materias (CLAVE_MATERIA, NOMBRE_MATERIA, CREDITOS) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $clavemateria, $nombremateria, $creditos);
+        $stmt = $mysqli->prepare("INSERT INTO materias (CLAVE_MATERIA, NOMBRE_MATERIA, CREDITOS, DESCRIPCION) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $clavemateria, $nombremateria, $creditos, $descripcion);
     }
     $stmt->execute();
     $stmt->close();
@@ -33,12 +34,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 // ---------- EDITAR ----------
-$edit = ["idmateria" => 0, "clavemateria" => "", "nombremateria" => "", "creditos" => ""];
+$edit = ["idmateria" => 0, "clavemateria" => "", "nombremateria" => "", "creditos" => "", "descripcion" => ""];
 $abrirModal = false;
 
 if (isset($_GET["editar"])) {
     $id = (int) $_GET["editar"];
-    $stmt = $mysqli->prepare("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos FROM materias WHERE ID_MATERIAS = ?");
+    $stmt = $mysqli->prepare("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos, DESCRIPCION AS descripcion FROM materias WHERE ID_MATERIAS = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $fila = $stmt->get_result()->fetch_assoc();
@@ -54,7 +55,7 @@ if (isset($_GET["nuevo"])) {
 }
 
 // ---------- LISTADO ----------
-$resultado = $mysqli->query("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos FROM materias WHERE ESTATUS = 'ALTA'");
+$resultado = $mysqli->query("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos, DESCRIPCION AS descripcion FROM materias WHERE ESTATUS = 'ALTA'");
 $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
@@ -63,8 +64,8 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Materias</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= $base ?>/assets/css/bootstrap-icons.css">
     <style>
         thead.thead-dark th { background-color: #0d6efd; color: #ffffff; }
         h1 { color: #2c3e50; }
@@ -86,6 +87,7 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <th scope="col">Clave Materia</th>
                 <th scope="col">Nombre Materia</th>
                 <th scope="col">Créditos</th>
+                <th scope="col">Descripción</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
                 <th scope="col"></th>
@@ -98,13 +100,14 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <td><?php echo htmlspecialchars($materia["clavemateria"]); ?></td>
                 <td><?php echo htmlspecialchars($materia["nombremateria"]); ?></td>
                 <td><?php echo htmlspecialchars($materia["creditos"]); ?></td>
+                <td><?php echo htmlspecialchars($materia["descripcion"]); ?></td>
                 <td>
-                    <a href="crudmaterias.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar" data-bs-toggle="modal" data-bs-target="#modalMateria">
+                    <a href="crudmaterias.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar">
                         <i class="bi bi-plus-lg"></i>
                     </a>
                 </td>
                 <td>
-                    <a href="crudmaterias.php?editar=<?php echo $materia["idmateria"]; ?>" class="btn btn-sm btn-primary" title="Modificar" data-bs-toggle="modal" data-bs-target="#modalMateria">
+                    <a href="crudmaterias.php?editar=<?php echo $materia["idmateria"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                 </td>
@@ -142,6 +145,10 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
             <label class="form-label">Créditos</label>
             <input type="text" name="creditos" class="form-control" maxlength="5" required value="<?php echo htmlspecialchars($edit["creditos"]); ?>">
           </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3" maxlength="255" required><?php echo htmlspecialchars($edit["descripcion"]); ?></textarea>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -152,7 +159,13 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('modalMateria').addEventListener('hidden.bs.modal', function () {
+        window.location.href = 'crudmaterias.php';
+    });
+</script>
+
 <?php if ($abrirModal) { ?>
 <script>
     var modal = new bootstrap.Modal(document.getElementById('modalMateria'));

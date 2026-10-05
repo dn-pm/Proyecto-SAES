@@ -12,12 +12,13 @@ if (isset($_POST["actualizar"])) {
         $nombregrupo = $_POST["nombregrupo"];
         $turno = $_POST["turno"];
         $semestre = $_POST["semestre"];
+        $descripcion = $_POST["descripcion"];
         $estatus = $_POST["estatus"];
 
     try {
-        $sql = "UPDATE grupos SET NOMBRE_GRUPO = ?, TURNO = ?, SEMESTRE = ?, ESTATUS = ? WHERE ID_GRUPOS = ?";
+        $sql = "UPDATE grupos SET NOMBRE_GRUPO = ?, TURNO = ?, SEMESTRE = ?, DESCRIPCION = ?, ESTATUS = ? WHERE ID_GRUPOS = ?";
         $stmt = $conexion->prepare($sql);
-        $stmt->bind_param("ssssi", $nombregrupo, $turno, $semestre, $estatus, $id);
+        $stmt->bind_param("sssssi", $nombregrupo, $turno, $semestre, $descripcion, $estatus, $id);
         $stmt->execute();
         $stmt->close();
         $mensaje = "Grupo actualizado correctamente.";
@@ -52,7 +53,7 @@ if ($grupo === null) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modificar Grupos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
@@ -99,6 +100,11 @@ if ($grupo === null) {
                         <label class="form-label">Semestre</label>
                         <input type="text" name="semestre" class="form-control" maxlength="10" required
                                value="<?php echo htmlspecialchars($grupo["SEMESTRE"]); ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción del grupo</label>
+                        <textarea name="descripcion" class="form-control" rows="3" maxlength="255" required><?php echo htmlspecialchars($grupo["DESCRIPCION"]); ?></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -152,7 +158,7 @@ if ($grupo === null) {
             <div class="text-center mt-3">
                 <a href="../alta/Formulario_Grupos.php">Registrar nuevo grupo</a>
                 &nbsp;|&nbsp;
-                <a href="../../principal.php">Regresar al menú</a>
+                <a href="<?= $base ?>/Cruds/crudgrupos.php">Ir al catálogo</a>
             </div>
 
         </div>
@@ -165,7 +171,7 @@ if ($grupo === null) {
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
