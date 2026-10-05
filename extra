@@ -1,28 +1,32 @@
--- 1. Crear usuario sin privilegios
-GRANT USAGE ON *.* TO 'gerente_mac' IDENTIFIED BY 'Mac2026';
+-- 1. Crear usuario sin privilegios (CAMBIÓ)
+CREATE USER 'gerente_mac'@'localhost' IDENTIFIED BY 'Mac2026';
 
--- 2. Dar privilegios (lectura y actualización)
-GRANT SELECT, UPDATE ON apple_store.* TO 'gerente_mac';
+-- 2. Dar privilegios
+GRANT SELECT, UPDATE ON apple_store.* TO 'gerente_mac'@'localhost';
 FLUSH PRIVILEGES;
 
 -- 3. Agregar más privilegios
-GRANT SELECT, UPDATE, INSERT, CREATE, DROP ON apple_store.* TO 'gerente_mac';
+GRANT SELECT, UPDATE, INSERT, CREATE, DROP ON apple_store.* TO 'gerente_mac'@'localhost';
 FLUSH PRIVILEGES;
 
 -- 4. Quitar un privilegio
-REVOKE DROP ON apple_store.* FROM 'gerente_mac';
+REVOKE DROP ON apple_store.* FROM 'gerente_mac'@'localhost';
 FLUSH PRIVILEGES;
 
--- 5. Ver privilegios del usuario
-SHOW GRANTS FOR 'gerente_mac';
+-- 5. Ver privilegios
+SHOW GRANTS FOR 'gerente_mac'@'localhost';
 
--- 6. Limitar la conexión a una sola computadora
-GRANT USAGE ON *.* TO 'gerente_mac'@'localhost' IDENTIFIED BY 'Mac2026';
+-- 6. Limitar la conexión (CAMBIÓ)
+-- El host ya va en el CREATE USER del paso 1. Para ver otras variantes,
+-- crea otro usuario con una IP o con cualquier equipo:
+CREATE USER 'gerente_mac'@'192.168.1.10' IDENTIFIED BY 'Mac2026';
+CREATE USER 'gerente_ipad'@'%' IDENTIFIED BY 'Mac2026';
 FLUSH PRIVILEGES;
--- Variantes: @'192.168.1.10' (una IP) o @'%' (cualquier equipo)
 
--- 7. Eliminar el usuario
-DROP USER 'gerente_mac';
+-- 7. Eliminar usuarios
+DROP USER 'gerente_mac'@'localhost';
+DROP USER 'gerente_mac'@'192.168.1.10';
+DROP USER 'gerente_ipad'@'%';
 
 
 
