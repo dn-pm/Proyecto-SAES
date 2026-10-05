@@ -1,0 +1,34 @@
+-- 1. Crear usuario sin privilegios
+GRANT USAGE ON *.* TO 'gerente_mac' IDENTIFIED BY 'Mac2026';
+
+-- 2. Dar privilegios (lectura y actualización)
+GRANT SELECT, UPDATE ON apple_store.* TO 'gerente_mac';
+FLUSH PRIVILEGES;
+
+-- 3. Agregar más privilegios
+GRANT SELECT, UPDATE, INSERT, CREATE, DROP ON apple_store.* TO 'gerente_mac';
+FLUSH PRIVILEGES;
+
+-- 4. Quitar un privilegio
+REVOKE DROP ON apple_store.* FROM 'gerente_mac';
+FLUSH PRIVILEGES;
+
+-- 5. Ver privilegios del usuario
+SHOW GRANTS FOR 'gerente_mac';
+
+-- 6. Limitar la conexión a una sola computadora
+GRANT USAGE ON *.* TO 'gerente_mac'@'localhost' IDENTIFIED BY 'Mac2026';
+FLUSH PRIVILEGES;
+-- Variantes: @'192.168.1.10' (una IP) o @'%' (cualquier equipo)
+
+-- 7. Eliminar el usuario
+DROP USER 'gerente_mac';
+
+
+
+
+
+SHOW DATABASES;
+USE apple_store;
+SELECT * FROM productos;
+DELETE FROM productos;  -- error 1142 si no tiene DELETE
