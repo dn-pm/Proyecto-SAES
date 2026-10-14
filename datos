@@ -1,0 +1,122 @@
+USE proyecto_sae;
+-- ============ 1. UNIDADES (10) ============
+INSERT IGNORE INTO unidad (ID_UNIDAD, DESCRIPCION) VALUES
+(1,  'Unidad 1 - Introduccion'),
+(2,  'Unidad 2 - Fundamentos'),
+(3,  'Unidad 3 - Desarrollo'),
+(4,  'Unidad 4 - Aplicacion'),
+(5,  'Unidad 5 - Integracion'),
+(6,  'Unidad 6 - Practicas'),
+(7,  'Unidad 7 - Proyecto parcial'),
+(8,  'Unidad 8 - Evaluacion'),
+(9,  'Unidad 9 - Repaso'),
+(10, 'Unidad 10 - Proyecto final');
+
+-- ============ 2. ALUMNOS (10) ============
+INSERT INTO alumnos (MATRICULA, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, DOMICILIO, CORREO, TELEFONO, ESTATUS) VALUES
+('TIC2026001', 'Carlos',    'Hernandez', 'Lopez',     'Calle Reforma 101, Centro',      'carlos.hernandez@correo.com', '5512345001', 'ALTA'),
+('TIC2026002', 'Maria',     'Garcia',    'Ruiz',      'Av. Juarez 202, Col. Norte',     'maria.garcia@correo.com',     '5512345002', 'ALTA'),
+('TIC2026003', 'Luis',      'Martinez',  'Soto',      'Calle Hidalgo 303, Col. Sur',    'luis.martinez@correo.com',    '5512345003', 'ALTA'),
+('TIC2026004', 'Ana',       'Lopez',     'Torres',    'Calle Morelos 404, Centro',      'ana.lopez@correo.com',        '5512345004', 'ALTA'),
+('TIC2026005', 'Jorge',     'Ramirez',   'Flores',    'Av. Insurgentes 505',            'jorge.ramirez@correo.com',    '5512345005', 'ALTA'),
+('TIC2026006', 'Sofia',     'Torres',    'Mendez',    'Calle Allende 606, Col. Este',   'sofia.torres@correo.com',     '5512345006', 'ALTA'),
+('TIC2026007', 'Diego',     'Flores',    'Castillo',  'Calle Victoria 707',             'diego.flores@correo.com',     '5512345007', 'ALTA'),
+('TIC2026008', 'Valeria',   'Mendoza',   'Rios',      'Av. Universidad 808',            'valeria.mendoza@correo.com',  '5512345008', 'ALTA'),
+('TIC2026009', 'Andres',    'Castillo',  'Vega',      'Calle Zaragoza 909, Col. Oeste', 'andres.castillo@correo.com',  '5512345009', 'ALTA'),
+('TIC2026010', 'Fernanda',  'Rios',      'Navarro',   'Calle Guerrero 1010',            'fernanda.rios@correo.com',    '5512345010', 'ALTA');
+
+-- ============ 3. PROFESORES (10) ============
+INSERT INTO profesores (CLAVE, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, CORREO, TELEFONO, ESTATUS) VALUES
+('PROF001', 'Roberto',   'Sanchez',   'Pena',     'roberto.sanchez@escuela.mx',   '5598760001', 'ALTA'),
+('PROF002', 'Laura',     'Gomez',     'Ibarra',   'laura.gomez@escuela.mx',       '5598760002', 'ALTA'),
+('PROF003', 'Miguel',    'Diaz',      'Campos',   'miguel.diaz@escuela.mx',       '5598760003', 'ALTA'),
+('PROF004', 'Patricia',  'Reyes',     'Ortega',   'patricia.reyes@escuela.mx',    '5598760004', 'ALTA'),
+('PROF005', 'Ricardo',   'Morales',   'Salinas',  'ricardo.morales@escuela.mx',   '5598760005', 'ALTA'),
+('PROF006', 'Elena',     'Vargas',    'Cruz',     'elena.vargas@escuela.mx',      '5598760006', 'ALTA'),
+('PROF007', 'Hector',    'Jimenez',   'Paredes',  'hector.jimenez@escuela.mx',    '5598760007', 'ALTA'),
+('PROF008', 'Gabriela',  'Herrera',   'Luna',     'gabriela.herrera@escuela.mx',  '5598760008', 'ALTA'),
+('PROF009', 'Arturo',    'Medina',    'Cano',     'arturo.medina@escuela.mx',     '5598760009', 'ALTA'),
+('PROF010', 'Claudia',   'Aguilar',   'Rojas',    'claudia.aguilar@escuela.mx',   '5598760010', 'ALTA');
+
+-- ============ 4. GRUPOS (10) ============
+INSERT INTO grupos (NOMBRE_GRUPO, TURNO, SEMESTRE, DESCRIPCION, ESTATUS) VALUES
+('TIC-101', 'Matutino',   '1', 'Primer semestre grupo A',  'ALTA'),
+('TIC-102', 'Vespertino', '1', 'Primer semestre grupo B',  'ALTA'),
+('TIC-201', 'Matutino',   '2', 'Segundo semestre grupo A', 'ALTA'),
+('TIC-202', 'Vespertino', '2', 'Segundo semestre grupo B', 'ALTA'),
+('TIC-301', 'Matutino',   '3', 'Tercer semestre grupo A',  'ALTA'),
+('TIC-302', 'Vespertino', '3', 'Tercer semestre grupo B',  'ALTA'),
+('TIC-401', 'Matutino',   '4', 'Cuarto semestre grupo A',  'ALTA'),
+('TIC-402', 'Vespertino', '4', 'Cuarto semestre grupo B',  'ALTA'),
+('TIC-501', 'Matutino',   '5', 'Quinto semestre grupo A',  'ALTA'),
+('TIC-502', 'Vespertino', '5', 'Quinto semestre grupo B',  'ALTA');
+
+-- ============ 5. MATERIAS (10) ============
+INSERT INTO materias (CLAVE_MATERIA, NOMBRE_MATERIA, CREDITOS, DESCRIPCION, ESTATUS) VALUES
+('MAT-001', 'Programacion I',           '8', 'Fundamentos de programacion',         'ALTA'),
+('MAT-002', 'Programacion II',          '8', 'PHP y bases de datos',                'ALTA'),
+('MAT-003', 'Bases de Datos',           '8', 'Modelado y SQL',                      'ALTA'),
+('MAT-004', 'Redes de Computadoras',    '6', 'Fundamentos de redes',                'ALTA'),
+('MAT-005', 'Ingenieria de Software',   '6', 'Metodologias y documentacion',        'ALTA'),
+('MAT-006', 'Sistemas Operativos',      '6', 'Administracion de sistemas',          'ALTA'),
+('MAT-007', 'Matematicas Discretas',    '6', 'Logica y conjuntos',                  'ALTA'),
+('MAT-008', 'Electronica Digital',      '6', 'Circuitos y microcontroladores',      'ALTA'),
+('MAT-009', 'Fibra Optica',             '4', 'Telecomunicaciones por fibra',        'ALTA'),
+('MAT-010', 'Ingles Tecnico',           '4', 'Ingles aplicado a TIC',               'ALTA');
+
+-- ============ 6. INSCRIPCIONES a grupos (10) ============
+-- Se buscan los ids por nombre de grupo y matricula, asi no importa que ids tengan.
+INSERT IGNORE INTO grupo_alumno (ID_GRUPOS, ID_ALUMNOS, ESTATUS)
+SELECT g.ID_GRUPOS, a.ID_ALUMNOS, t.estatus
+FROM (
+    SELECT 'TIC-101' AS grupo, 'TIC2026001' AS mat, 'ALTA' AS estatus
+    UNION ALL SELECT 'TIC-101', 'TIC2026002', 'ALTA'
+    UNION ALL SELECT 'TIC-101', 'TIC2026003', 'ALTA'
+    UNION ALL SELECT 'TIC-102', 'TIC2026004', 'ALTA'
+    UNION ALL SELECT 'TIC-102', 'TIC2026005', 'ALTA'
+    UNION ALL SELECT 'TIC-201', 'TIC2026006', 'ALTA'
+    UNION ALL SELECT 'TIC-201', 'TIC2026007', 'ALTA'
+    UNION ALL SELECT 'TIC-202', 'TIC2026008', 'BAJA'
+    UNION ALL SELECT 'TIC-301', 'TIC2026009', 'ALTA'
+    UNION ALL SELECT 'TIC-301', 'TIC2026010', 'BAJA'
+) t
+JOIN grupos g  ON g.NOMBRE_GRUPO = t.grupo
+JOIN alumnos a ON a.MATRICULA    = t.mat;
+
+-- ============ 7. ASIGNACION de materias (10) ============
+INSERT IGNORE INTO asignatura (ID_MATERIAS, ID_ALUMNOS, ID_PROFESORES)
+SELECT m.ID_MATERIAS, a.ID_ALUMNOS, p.ID_PROFESORES
+FROM (
+    SELECT 'MAT-001' AS materia, 'TIC2026001' AS mat, 'PROF001' AS prof
+    UNION ALL SELECT 'MAT-002', 'TIC2026001', 'PROF002'
+    UNION ALL SELECT 'MAT-001', 'TIC2026002', 'PROF001'
+    UNION ALL SELECT 'MAT-003', 'TIC2026002', 'PROF003'
+    UNION ALL SELECT 'MAT-002', 'TIC2026003', 'PROF002'
+    UNION ALL SELECT 'MAT-004', 'TIC2026004', 'PROF004'
+    UNION ALL SELECT 'MAT-005', 'TIC2026005', 'PROF005'
+    UNION ALL SELECT 'MAT-006', 'TIC2026006', 'PROF006'
+    UNION ALL SELECT 'MAT-007', 'TIC2026007', 'PROF007'
+    UNION ALL SELECT 'MAT-008', 'TIC2026008', 'PROF008'
+) t
+JOIN materias m   ON m.CLAVE_MATERIA = t.materia
+JOIN alumnos a    ON a.MATRICULA     = t.mat
+JOIN profesores p ON p.CLAVE         = t.prof;
+
+-- ============ 8. CALIFICACIONES (10) ============
+-- Solo unidades 1 y 2 y alumnos 1 a 5. Las unidades 3 a 10 y los alumnos 6 a 10
+-- quedan libres para probar la captura individual y masiva en la pagina.
+INSERT IGNORE INTO calificaciones (ID_ALUMNOS, CALIFICACION, ID_UNIDAD)
+SELECT a.ID_ALUMNOS, t.cal, t.unidad
+FROM (
+    SELECT 'TIC2026001' AS mat, 9.5 AS cal, 1 AS unidad
+    UNION ALL SELECT 'TIC2026002', 8.0, 1
+    UNION ALL SELECT 'TIC2026003', 7.5, 1
+    UNION ALL SELECT 'TIC2026004', 10.0, 1
+    UNION ALL SELECT 'TIC2026005', 6.0, 1
+    UNION ALL SELECT 'TIC2026001', 9.0, 2
+    UNION ALL SELECT 'TIC2026002', 8.5, 2
+    UNION ALL SELECT 'TIC2026003', 7.0, 2
+    UNION ALL SELECT 'TIC2026004', 9.5, 2
+    UNION ALL SELECT 'TIC2026005', 6.5, 2
+) t
+JOIN alumnos a ON a.MATRICULA = t.mat;
