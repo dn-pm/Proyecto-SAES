@@ -1,9 +1,3 @@
--- =========================================================
--- Proyecto SAE - Base de datos alineada con los crud*.php
--- OJO: borra y recrea profesores, grupos y materias
--- (se pierden los datos de esas tablas). alumnos no se toca.
--- =========================================================
-
 CREATE DATABASE IF NOT EXISTS proyecto_sae
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_spanish_ci;

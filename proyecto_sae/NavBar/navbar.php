@@ -10,29 +10,34 @@
 
     <div class="collapse navbar-collapse" id="menuPrincipal">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
+        
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Catálogos</a>
-          <ul class="dropdown-menu bg-dark">
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudalumnos.php">Alumnos</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudprofesores.php">Profesores</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudgrupos.php">Grupos</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudmaterias.php">Materias</a></li>
-          </ul>
-        </li>
-
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Registrar</a>
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Registros</a>
           <ul class="dropdown-menu bg-dark">
             <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/alta/Formulario_Alumnos.php">Alumnos</a></li>
             <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/alta/Formulario_Profesores.php">Profesores</a></li>
             <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/alta/Formulario_Grupos.php">Grupos</a></li>
             <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/alta/Formulario_Materias.php">Materias</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/alta/Formulario_Unidad.php">Unidades</a></li>
+          </ul>
+        </li>        
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Procesos</a>
+          <ul class="dropdown-menu bg-dark">
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudalumnos.php">Alumnos</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudprofesores.php">Profesores</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudgrupos.php">Grupos</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/Cruds/crudmaterias.php">Materias</a></li>
+            <li><hr class="dropdown-divider border-secondary"></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/procesos/Inscripcion_Grupos.php">Inscripción a grupos</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/procesos/Asignacion_Materias.php">Asignación de materias</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/procesos/Captura_Calificaciones.php">Captura de calificaciones</a></li>
           </ul>
         </li>
 
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Modificar</a>
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Reportes</a>
           <ul class="dropdown-menu bg-dark">
             <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Alumnos.php">Alumnos</a></li>
             <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Profesores.php">Profesores</a></li>
