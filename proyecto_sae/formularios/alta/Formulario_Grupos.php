@@ -80,15 +80,6 @@ if (isset($_POST["guardar"])) {
                     Grupo guardado correctamente en la base de datos.
                 </div>
 
-                <h4 class="mb-3">Información del grupo</h4>
-
-                <table class="table table-bordered">
-                    <tr><th>Nombre del grupo</th><td><?php echo htmlspecialchars($nombregrupo); ?></td></tr>
-                    <tr><th>Turno</th><td><?php echo htmlspecialchars($turno); ?></td></tr>
-                    <tr><th>Semestre</th><td><?php echo htmlspecialchars($semestre); ?></td></tr>
-                    <tr><th>Descripción</th><td><?php echo htmlspecialchars($descripcion); ?></td></tr>
-                </table>
-
             <?php } ?>
 
             <div class="text-center mt-3">

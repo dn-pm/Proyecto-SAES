@@ -130,8 +130,6 @@ $asignadas = $conexion->query(
                 </table>
             </div>
 
-            <p class="text-muted small mb-0">Avance: falta poder modificar y eliminar asignaciones.</p>
-
         </div>
 
         <div class="card-footer text-center">

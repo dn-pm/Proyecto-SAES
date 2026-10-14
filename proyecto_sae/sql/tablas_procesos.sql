@@ -1,7 +1,5 @@
 USE proyecto_sae;
 
--- Ejecutar solo este archivo (NO vuelve a borrar tus tablas existentes)
-
 CREATE TABLE IF NOT EXISTS unidad (
     ID_UNIDAD    INT PRIMARY KEY,
     DESCRIPCION  VARCHAR(255) NOT NULL

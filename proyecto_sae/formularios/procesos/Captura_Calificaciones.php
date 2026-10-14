@@ -248,7 +248,6 @@ if ($modo === "individual") {
                         </div>
 
                         <button type="submit" name="guardar" class="btn btn-primary">Guardar calificaciones</button>
-                        <span class="text-muted small ms-2">Solo se guardan las filas que tengan calificación capturada.</span>
                     </form>
                 <?php } ?>
 

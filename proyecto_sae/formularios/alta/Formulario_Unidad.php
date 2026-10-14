@@ -72,13 +72,6 @@ if (isset($_POST["guardar"])) {
                     Unidad guardada correctamente en la base de datos.
                 </div>
 
-                <h4 class="mb-3">Información de la unidad</h4>
-
-                <table class="table table-bordered">
-                    <tr><th>Id de unidad</th><td><?php echo htmlspecialchars($idUnidad); ?></td></tr>
-                    <tr><th>Descripción</th><td><?php echo htmlspecialchars($descripcion); ?></td></tr>
-                </table>
-
             <?php } ?>
 
         </div>

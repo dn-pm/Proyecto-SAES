@@ -125,8 +125,6 @@ $inscritos = $conexion->query(
                 </table>
             </div>
 
-            <p class="text-muted small mb-0">Avance: falta poder modificar el estatus y dar de baja una inscripción.</p>
-
         </div>
 
         <div class="card-footer text-center">

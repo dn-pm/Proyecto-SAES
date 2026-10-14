@@ -92,17 +92,6 @@ if (isset($_POST["guardar"])) {
                     Profesor guardado correctamente en la base de datos.
                 </div>
 
-                <h4 class="mb-3">Información del profesor</h4>
-
-                <table class="table table-bordered">
-                    <tr><th>Clave</th><td><?php echo htmlspecialchars($clave); ?></td></tr>
-                    <tr><th>Nombre</th><td><?php echo htmlspecialchars($nombre); ?></td></tr>
-                    <tr><th>Apellido paterno</th><td><?php echo htmlspecialchars($apellidoPaterno); ?></td></tr>
-                    <tr><th>Apellido materno</th><td><?php echo htmlspecialchars($apellidoMaterno); ?></td></tr>
-                    <tr><th>Correo electrónico</th><td><?php echo htmlspecialchars($correo); ?></td></tr>
-                    <tr><th>Teléfono</th><td><?php echo htmlspecialchars($telefono); ?></td></tr>
-                </table>
-
             <?php } ?>
 
             <div class="text-center mt-3">

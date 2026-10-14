@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS alumnos (
     ESTATUS           VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
 );
 
--- Tablas viejas que ya no se usan
 DROP TABLE IF EXISTS grupo;
 DROP TABLE IF EXISTS grupos;
 DROP TABLE IF EXISTS materias;
