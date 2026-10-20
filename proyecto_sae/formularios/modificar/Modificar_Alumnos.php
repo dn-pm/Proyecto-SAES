@@ -158,7 +158,7 @@ if ($alumno === null) {
                         Guardar cambios
                     </button>
 
-                    <a href="Modificar_Alumnos.php" class="btn btn-secondary">Cancelar</a>
+                    <a href="<?= $base ?>/Cruds/crudalumnos.php" class="btn btn-secondary">Cancelar</a>
 
                 </form>
 
@@ -204,7 +204,7 @@ if ($alumno === null) {
             <div class="text-center mt-3">
                 <a href="../alta/Formulario_Alumnos.php">Registrar nuevo alumno</a>
                 &nbsp;|&nbsp;
-                <a href="../../index.php">Regresar al menú</a>
+                <a href="<?= $base ?>/Cruds/crudalumnos.php">Ir al catálogo</a>
             </div>
 
         </div>

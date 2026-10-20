@@ -123,7 +123,7 @@ if ($profesor === null) {
                     </div>
 
                     <button type="submit" name="actualizar" class="btn btn-primary">Guardar cambios</button>
-                    <a href="Modificar_Profesores.php" class="btn btn-secondary">Cancelar</a>
+                    <a href="<?= $base ?>/Cruds/crudprofesores.php" class="btn btn-secondary">Cancelar</a>
 
                 </form>
 

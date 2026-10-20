@@ -80,6 +80,15 @@ if (isset($_POST["guardar"])) {
                     Materia guardada correctamente en la base de datos.
                 </div>
 
+                <h4 class="mb-3">Información de la materia</h4>
+
+                <table class="table table-bordered">
+                    <tr><th>Clave</th><td><?php echo htmlspecialchars($clavemateria); ?></td></tr>
+                    <tr><th>Nombre de la materia</th><td><?php echo htmlspecialchars($nombremateria); ?></td></tr>
+                    <tr><th>Créditos</th><td><?php echo htmlspecialchars($creditos); ?></td></tr>
+                    <tr><th>Descripción</th><td><?php echo htmlspecialchars($descripcion); ?></td></tr>
+                </table>
+
             <?php } ?>
 
             <div class="text-center mt-3">

@@ -49,11 +49,36 @@ if (isset($_POST["guardar"])) {
     }
 }
 
+// ---------- Corrección de una calificación ya capturada ----------
+$correccionOk = false;
+if (isset($_POST["corregir_guardar"])) {
+    $idUnidadPost = (int)$_POST["id_unidad"];
+    $idAlumnoPost = (int)$_POST["id_alumno"];
+    $valor = trim($_POST["nueva_cal"] ?? "");
+
+    if ($valor === "" || !is_numeric($valor) || $valor < 0 || $valor > 10) {
+        $error = "La calificación debe ser un número entre 0 y 10.";
+    } else {
+        try {
+            $calif = (float)$valor;
+            $stmt = $conexion->prepare("UPDATE calificaciones SET CALIFICACION = ? WHERE ID_ALUMNOS = ? AND ID_UNIDAD = ?");
+            $stmt->bind_param("dii", $calif, $idAlumnoPost, $idUnidadPost);
+            $stmt->execute();
+            $stmt->close();
+            $exito = "Calificación corregida correctamente.";
+            $correccionOk = true;
+        } catch (mysqli_sql_exception $e) {
+            $error = "Ocurrió un error al corregir: " . $e->getMessage();
+        }
+    }
+}
+
 // ---------- Datos para mostrar ----------
+$corregir = isset($_GET["corregir"]) && !$correccionOk;
 $idUnidad = (int)($_GET["id_unidad"] ?? 0);
 $idAlumno = (int)($_GET["id_alumno"] ?? 0);
 
-$unidades = $conexion->query("SELECT ID_UNIDAD, DESCRIPCION FROM unidad ORDER BY ID_UNIDAD")->fetch_all(MYSQLI_ASSOC);
+$unidades = $conexion->query("SELECT ID_UNIDAD, DESCRIPCION FROM unidad WHERE ESTATUS = 'ALTA' ORDER BY ID_UNIDAD")->fetch_all(MYSQLI_ASSOC);
 
 $alumnos = [];
 $calActual = null;
@@ -162,6 +187,7 @@ if ($modo === "individual") {
                     <hr>
                     <form method="POST">
                         <input type="hidden" name="id_unidad" value="<?= $idUnidad ?>">
+                        <input type="hidden" name="id_alumno" value="<?= $idAlumno ?>">
 
                         <div class="row g-3">
                             <?php if ($calActual === null) { ?>
@@ -177,12 +203,23 @@ if ($modo === "individual") {
                                 <label class="form-label">Calificación registrada</label>
                                 <input type="text" class="form-control" value="<?= h($calActual) ?>" readonly>
                             </div>
+
+                            <?php if ($calActual !== null && $corregir) { ?>
+                                <!-- Campo de corrección: solo aparece al presionar "Corregir calificación" -->
+                                <div class="col-md-4">
+                                    <label class="form-label">Nueva calificación</label>
+                                    <input type="number" name="nueva_cal" class="form-control" min="0" max="10" step="0.1" value="<?= h($calActual) ?>" required>
+                                </div>
+                            <?php } ?>
                         </div>
 
                         <?php if ($calActual === null) { ?>
                             <button type="submit" name="guardar" class="btn btn-primary mt-3">Guardar calificación</button>
+                        <?php } elseif ($corregir) { ?>
+                            <button type="submit" name="corregir_guardar" class="btn btn-warning mt-3">Guardar corrección</button>
+                            <a href="?modo=individual&id_alumno=<?= $idAlumno ?>&id_unidad=<?= $idUnidad ?>" class="btn btn-secondary mt-3">Cancelar</a>
                         <?php } else { ?>
-                            <p class="text-muted small mt-3 mb-0">Esta calificación ya fue registrada y no se puede editar.</p>
+                            <a href="?modo=individual&id_alumno=<?= $idAlumno ?>&id_unidad=<?= $idUnidad ?>&corregir=1" class="btn btn-outline-warning mt-3">Corregir calificación</a>
                         <?php } ?>
                     </form>
                 <?php } ?>
@@ -240,6 +277,9 @@ if ($modo === "individual") {
                                             </td>
                                             <td>
                                                 <input type="text" class="form-control" value="<?= h($f["CALIFICACION"]) ?>" readonly>
+                                                <?php if ($f["CALIFICACION"] !== null) { ?>
+                                                    <a class="small" href="?modo=individual&id_alumno=<?= $f["ID_ALUMNOS"] ?>&id_unidad=<?= $idUnidad ?>&corregir=1">Corregir</a>
+                                                <?php } ?>
                                             </td>
                                         </tr>
                                     <?php } ?>
@@ -248,6 +288,7 @@ if ($modo === "individual") {
                         </div>
 
                         <button type="submit" name="guardar" class="btn btn-primary">Guardar calificaciones</button>
+                        <span class="text-muted small ms-2">Solo se guardan las filas que tengan calificación capturada.</span>
                     </form>
                 <?php } ?>
 

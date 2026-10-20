@@ -225,6 +225,48 @@ if (isset($_POST["guardar"])) {
                 <div class="alert alert-success mt-3">
                     Alumno guardado correctamente en la base de datos.
                 </div>
+
+                <h4 class="mb-3">
+                    Datos del alumno
+                </h4>
+
+                <table class="table table-bordered">
+
+                    <tr>
+                        <th>Matrícula</th>
+                        <td><?php echo $matricula; ?></td>
+                    </tr>
+
+                    <tr>
+                        <th>Nombre</th>
+                        <td><?php echo $nombre; ?></td>
+                    </tr>
+
+                    <tr>
+                        <th>Apellido paterno</th>
+                        <td><?php echo $apellidoPaterno; ?></td>
+                    </tr>
+
+                    <tr>
+                        <th>Apellido materno</th>
+                        <td><?php echo $apellidoMaterno; ?></td>
+                    </tr>
+
+                    <tr>
+                        <th>Domicilio</th>
+                        <td><?php echo $domicilio; ?></td>
+                    </tr>
+
+                    <tr>
+                        <th>Correo electrónico</th>
+                        <td><?php echo $correo; ?></td>
+                    </tr>
+
+                    <tr>
+                        <th>Teléfono</th>
+                        <td><?php echo $telefono; ?></td>
+                    </tr>
+
                 </table>
 
             <?php
@@ -236,7 +278,7 @@ if (isset($_POST["guardar"])) {
             <div class="text-center mt-3">
                 <a href="../modificar/Modificar_Alumnos.php">Modificar un alumno existente</a>
                 &nbsp;|&nbsp;
-                <a href="../../index.php">Regresar al menú</a>
+                <a href="<?= $base ?>/Cruds/crudalumnos.php">Ir al catálogo</a>
             </div>
 
         </div>

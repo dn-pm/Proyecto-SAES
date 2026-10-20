@@ -12,51 +12,9 @@ if (isset($_GET["baja"])) {
     exit;
 }
 
-// ---------- GUARDAR (registrar o modificar) ----------
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $id            = (int) ($_POST["idmateria"] ?? 0);
-    $clavemateria  = trim($_POST["clavemateria"] ?? "");
-    $nombremateria = trim($_POST["nombremateria"] ?? "");
-    $creditos      = trim($_POST["creditos"] ?? "");
-    $descripcion   = trim($_POST["descripcion"] ?? "");
-
-    if ($id > 0) {
-        $stmt = $mysqli->prepare("UPDATE materias SET CLAVE_MATERIA = ?, NOMBRE_MATERIA = ?, CREDITOS = ?, DESCRIPCION = ? WHERE ID_MATERIAS = ?");
-        $stmt->bind_param("ssssi", $clavemateria, $nombremateria, $creditos, $descripcion, $id);
-    } else {
-        $stmt = $mysqli->prepare("INSERT INTO materias (CLAVE_MATERIA, NOMBRE_MATERIA, CREDITOS, DESCRIPCION) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $clavemateria, $nombremateria, $creditos, $descripcion);
-    }
-    $stmt->execute();
-    $stmt->close();
-    header("Location: crudmaterias.php");
-    exit;
-}
-
-// ---------- EDITAR ----------
-$edit = ["idmateria" => 0, "clavemateria" => "", "nombremateria" => "", "creditos" => "", "descripcion" => ""];
-$abrirModal = false;
-
-if (isset($_GET["editar"])) {
-    $id = (int) $_GET["editar"];
-    $stmt = $mysqli->prepare("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos, DESCRIPCION AS descripcion FROM materias WHERE ID_MATERIAS = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $fila = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-    if ($fila) {
-        $edit = $fila;
-        $abrirModal = true;
-    }
-}
-
-if (isset($_GET["nuevo"])) {
-    $abrirModal = true;
-}
-
 // ---------- LISTADO ----------
 $resultado = $mysqli->query("SELECT ID_MATERIAS AS idmateria, CLAVE_MATERIA AS clavemateria, NOMBRE_MATERIA AS nombremateria, CREDITOS AS creditos, DESCRIPCION AS descripcion FROM materias WHERE ESTATUS = 'ALTA'");
-$materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
+$materias = $resultado->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -78,7 +36,13 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
 <div class="container">
     <br><br>
     <h1 align="center">Catálogo de Materias</h1>
-    <br><br>
+    <br>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="<?= $base ?>/formularios/alta/Formulario_Materias.php" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Registrar nueva materia
+        </a>
+    </div>
 
     <table class="table">
         <thead class="thead-dark">
@@ -90,10 +54,14 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <th scope="col">Descripción</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
-                <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
+<?php if (count($materias) === 0) { ?>
+            <tr>
+                <td colspan="7" class="text-center text-muted">No hay materias registradas.</td>
+            </tr>
+<?php } ?>
 <?php foreach ($materias as $materia) { ?>
             <tr>
                 <th scope="row"><?php echo $materia["idmateria"]; ?></th>
@@ -102,12 +70,7 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <td><?php echo htmlspecialchars($materia["creditos"]); ?></td>
                 <td><?php echo htmlspecialchars($materia["descripcion"]); ?></td>
                 <td>
-                    <a href="crudmaterias.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar">
-                        <i class="bi bi-plus-lg"></i>
-                    </a>
-                </td>
-                <td>
-                    <a href="crudmaterias.php?editar=<?php echo $materia["idmateria"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
+                    <a href="<?= $base ?>/formularios/modificar/Modificar_Materias.php?id=<?php echo $materia["idmateria"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                 </td>
@@ -122,55 +85,6 @@ $materias = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
     </table>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="modalMateria" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="POST" action="crudmaterias.php">
-        <div class="modal-header">
-          <h5 class="modal-title"><?php echo $edit["idmateria"] > 0 ? "Modificar materia" : "Registrar materia"; ?></h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="idmateria" value="<?php echo $edit["idmateria"]; ?>">
-          <div class="mb-3">
-            <label class="form-label">Clave de Materia</label>
-            <input type="text" name="clavemateria" class="form-control" maxlength="15" required value="<?php echo htmlspecialchars($edit["clavemateria"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Nombre de Materia</label>
-            <input type="text" name="nombremateria" class="form-control" maxlength="50" required value="<?php echo htmlspecialchars($edit["nombremateria"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Créditos</label>
-            <input type="text" name="creditos" class="form-control" maxlength="5" required value="<?php echo htmlspecialchars($edit["creditos"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Descripción</label>
-            <textarea name="descripcion" class="form-control" rows="3" maxlength="255" required><?php echo htmlspecialchars($edit["descripcion"]); ?></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary"><?php echo $edit["idmateria"] > 0 ? "Guardar cambios" : "Registrar"; ?></button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.getElementById('modalMateria').addEventListener('hidden.bs.modal', function () {
-        window.location.href = 'crudmaterias.php';
-    });
-</script>
-
-<?php if ($abrirModal) { ?>
-<script>
-    var modal = new bootstrap.Modal(document.getElementById('modalMateria'));
-    modal.show();
-</script>
-<?php } ?>
 </body>
 </html>

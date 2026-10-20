@@ -116,7 +116,7 @@ if ($materia === null) {
                     </div>
 
                     <button type="submit" name="actualizar" class="btn btn-primary">Guardar cambios</button>
-                    <a href="Modificar_Materias.php" class="btn btn-secondary">Cancelar</a>
+                    <a href="<?= $base ?>/Cruds/crudmaterias.php" class="btn btn-secondary">Cancelar</a>
 
                 </form>
 

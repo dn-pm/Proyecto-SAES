@@ -12,53 +12,9 @@ if (isset($_GET["baja"])) {
     exit;
 }
 
-// ---------- GUARDAR (registrar o modificar) ----------
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $id       = (int) ($_POST["idprof"] ?? 0);
-    $clave    = trim($_POST["clave"] ?? "");
-    $nombre   = trim($_POST["nombre"] ?? "");
-    $apaterno = trim($_POST["apaterno"] ?? "");
-    $amaterno = trim($_POST["amaterno"] ?? "");
-    $correo   = trim($_POST["correo"] ?? "");
-    $telefono = trim($_POST["telefono"] ?? "");
-
-    if ($id > 0) {
-        $stmt = $mysqli->prepare("UPDATE profesores SET CLAVE = ?, NOMBRE = ?, APELLIDO_PATERNO = ?, APELLIDO_MATERNO = ?, CORREO = ?, TELEFONO = ? WHERE ID_PROFESORES = ?");
-        $stmt->bind_param("ssssssi", $clave, $nombre, $apaterno, $amaterno, $correo, $telefono, $id);
-    } else {
-        $stmt = $mysqli->prepare("INSERT INTO profesores (CLAVE, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, CORREO, TELEFONO) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $clave, $nombre, $apaterno, $amaterno, $correo, $telefono);
-    }
-    $stmt->execute();
-    $stmt->close();
-    header("Location: crudprofesores.php");
-    exit;
-}
-
-// ---------- EDITAR ----------
-$edit = ["idprof" => 0, "clave" => "", "nombre" => "", "apaterno" => "", "amaterno" => "", "correo" => "", "telefono" => ""];
-$abrirModal = false;
-
-if (isset($_GET["editar"])) {
-    $id = (int) $_GET["editar"];
-    $stmt = $mysqli->prepare("SELECT ID_PROFESORES AS idprof, CLAVE AS clave, NOMBRE AS nombre, APELLIDO_PATERNO AS apaterno, APELLIDO_MATERNO AS amaterno, CORREO AS correo, TELEFONO AS telefono FROM profesores WHERE ID_PROFESORES = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $fila = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-    if ($fila) {
-        $edit = $fila;
-        $abrirModal = true;
-    }
-}
-
-if (isset($_GET["nuevo"])) {
-    $abrirModal = true;
-}
-
 // ---------- LISTADO ----------
 $resultado = $mysqli->query("SELECT ID_PROFESORES AS idprof, CLAVE AS clave, NOMBRE AS nombre, APELLIDO_PATERNO AS apaterno, APELLIDO_MATERNO AS amaterno, CORREO AS correo, TELEFONO AS telefono FROM profesores WHERE ESTATUS = 'ALTA'");
-$profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
+$profesores = $resultado->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -80,7 +36,13 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
 <div class="container">
     <br><br>
     <h1 align="center">Catálogo de Profesores</h1>
-    <br><br>
+    <br>
+
+    <div class="d-flex justify-content-end mb-3">
+        <a href="<?= $base ?>/formularios/alta/Formulario_Profesores.php" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Registrar nuevo profesor
+        </a>
+    </div>
 
     <table class="table">
         <thead class="thead-dark">
@@ -94,10 +56,14 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <th scope="col">Teléfono</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
-                <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
+<?php if (count($profesores) === 0) { ?>
+            <tr>
+                <td colspan="9" class="text-center text-muted">No hay profesores registrados.</td>
+            </tr>
+<?php } ?>
 <?php foreach ($profesores as $profesor) { ?>
             <tr>
                 <th scope="row"><?php echo $profesor["idprof"]; ?></th>
@@ -108,12 +74,7 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
                 <td><?php echo htmlspecialchars($profesor["correo"]); ?></td>
                 <td><?php echo htmlspecialchars($profesor["telefono"]); ?></td>
                 <td>
-                    <a href="crudprofesores.php?nuevo=1" class="btn btn-sm btn-dark" title="Agregar">
-                        <i class="bi bi-plus-lg"></i>
-                    </a>
-                </td>
-                <td>
-                    <a href="crudprofesores.php?editar=<?php echo $profesor["idprof"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
+                    <a href="<?= $base ?>/formularios/modificar/Modificar_Profesores.php?id=<?php echo $profesor["idprof"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                 </td>
@@ -128,63 +89,6 @@ $profesores = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
     </table>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="modalProfesor" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="POST" action="crudprofesores.php">
-        <div class="modal-header">
-          <h5 class="modal-title"><?php echo $edit["idprof"] > 0 ? "Modificar profesor" : "Registrar profesor"; ?></h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="idprof" value="<?php echo $edit["idprof"]; ?>">
-          <div class="mb-3">
-            <label class="form-label">Clave</label>
-            <input type="text" name="clave" class="form-control" maxlength="15" required value="<?php echo htmlspecialchars($edit["clave"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Nombre</label>
-            <input type="text" name="nombre" class="form-control" maxlength="30" required value="<?php echo htmlspecialchars($edit["nombre"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Apellido paterno</label>
-            <input type="text" name="apaterno" class="form-control" maxlength="15" required value="<?php echo htmlspecialchars($edit["apaterno"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Apellido materno</label>
-            <input type="text" name="amaterno" class="form-control" maxlength="15" required value="<?php echo htmlspecialchars($edit["amaterno"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Correo</label>
-            <input type="email" name="correo" class="form-control" maxlength="50" required value="<?php echo htmlspecialchars($edit["correo"]); ?>">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Teléfono</label>
-            <input type="tel" name="telefono" class="form-control" maxlength="35" required value="<?php echo htmlspecialchars($edit["telefono"]); ?>">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary"><?php echo $edit["idprof"] > 0 ? "Guardar cambios" : "Registrar"; ?></button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.getElementById('modalProfesor').addEventListener('hidden.bs.modal', function () {
-        window.location.href = 'crudprofesores.php';
-    });
-</script>
-
-<?php if ($abrirModal) { ?>
-<script>
-    var modal = new bootstrap.Modal(document.getElementById('modalProfesor'));
-    modal.show();
-</script>
-<?php } ?>
 </body>
 </html>

@@ -6,6 +6,7 @@ function h($t) { return htmlspecialchars((string)$t); }
 $exito = "";
 $error = "";
 
+// ---------- INSCRIBIR ----------
 if (isset($_POST["guardar"])) {
     $idGrupo  = (int)$_POST["id_grupo"];
     $idAlumno = (int)$_POST["id_alumno"];
@@ -24,6 +25,39 @@ if (isset($_POST["guardar"])) {
         } else {
             $error = "Ocurrió un error al guardar: " . $e->getMessage();
         }
+    }
+}
+
+// ---------- CAMBIAR ESTATUS (dar de baja / reactivar) ----------
+if (isset($_POST["cambiar_estatus"])) {
+    $idGrupo  = (int)$_POST["id_grupo"];
+    $idAlumno = (int)$_POST["id_alumno"];
+    $nuevo    = ($_POST["estatus_actual"] === "ALTA") ? "BAJA" : "ALTA";
+
+    try {
+        $stmt = $conexion->prepare("UPDATE grupo_alumno SET ESTATUS = ? WHERE ID_GRUPOS = ? AND ID_ALUMNOS = ?");
+        $stmt->bind_param("sii", $nuevo, $idGrupo, $idAlumno);
+        $stmt->execute();
+        $stmt->close();
+        $exito = "Estatus actualizado a " . $nuevo . ".";
+    } catch (mysqli_sql_exception $e) {
+        $error = "Ocurrió un error al actualizar: " . $e->getMessage();
+    }
+}
+
+// ---------- ELIMINAR INSCRIPCIÓN ----------
+if (isset($_POST["eliminar"])) {
+    $idGrupo  = (int)$_POST["id_grupo"];
+    $idAlumno = (int)$_POST["id_alumno"];
+
+    try {
+        $stmt = $conexion->prepare("DELETE FROM grupo_alumno WHERE ID_GRUPOS = ? AND ID_ALUMNOS = ?");
+        $stmt->bind_param("ii", $idGrupo, $idAlumno);
+        $stmt->execute();
+        $stmt->close();
+        $exito = "Inscripción eliminada.";
+    } catch (mysqli_sql_exception $e) {
+        $error = "Ocurrió un error al eliminar: " . $e->getMessage();
     }
 }
 
@@ -103,13 +137,13 @@ $inscritos = $conexion->query(
             <h4 class="mb-3">Alumnos inscritos</h4>
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped align-middle">
                     <thead class="table-dark">
-                        <tr><th>Id grupo</th><th>Grupo</th><th>Id alumno</th><th>Matrícula</th><th>Alumno</th><th>Estatus</th></tr>
+                        <tr><th>Id grupo</th><th>Grupo</th><th>Id alumno</th><th>Matrícula</th><th>Alumno</th><th>Estatus</th><th>Acciones</th></tr>
                     </thead>
                     <tbody>
                         <?php if (count($inscritos) === 0) { ?>
-                            <tr><td colspan="6" class="text-center text-muted">Aún no hay inscripciones.</td></tr>
+                            <tr><td colspan="7" class="text-center text-muted">Aún no hay inscripciones.</td></tr>
                         <?php } ?>
                         <?php foreach ($inscritos as $i) { ?>
                             <tr>
@@ -118,7 +152,24 @@ $inscritos = $conexion->query(
                                 <td><?= h($i["ID_ALUMNOS"]) ?></td>
                                 <td><?= h($i["MATRICULA"]) ?></td>
                                 <td><?= h($i["NOMBRE_COMPLETO"]) ?></td>
-                                <td><?= h($i["ESTATUS"]) ?></td>
+                                <td>
+                                    <span class="badge <?= $i["ESTATUS"] === "ALTA" ? "bg-success" : "bg-secondary" ?>"><?= h($i["ESTATUS"]) ?></span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <form method="POST" class="d-inline">
+                                        <input type="hidden" name="id_grupo" value="<?= $i["ID_GRUPOS"] ?>">
+                                        <input type="hidden" name="id_alumno" value="<?= $i["ID_ALUMNOS"] ?>">
+                                        <input type="hidden" name="estatus_actual" value="<?= h($i["ESTATUS"]) ?>">
+                                        <button type="submit" name="cambiar_estatus" class="btn btn-sm btn-outline-secondary">
+                                            <?= $i["ESTATUS"] === "ALTA" ? "Dar de baja" : "Reactivar" ?>
+                                        </button>
+                                    </form>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar esta inscripción?');">
+                                        <input type="hidden" name="id_grupo" value="<?= $i["ID_GRUPOS"] ?>">
+                                        <input type="hidden" name="id_alumno" value="<?= $i["ID_ALUMNOS"] ?>">
+                                        <button type="submit" name="eliminar" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                    </form>
+                                </td>
                             </tr>
                         <?php } ?>
                     </tbody>

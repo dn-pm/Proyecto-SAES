@@ -116,7 +116,7 @@ if ($grupo === null) {
                     </div>
 
                     <button type="submit" name="actualizar" class="btn btn-primary">Guardar cambios</button>
-                    <a href="Modificar_Grupos.php" class="btn btn-secondary">Cancelar</a>
+                    <a href="<?= $base ?>/Cruds/crudgrupos.php" class="btn btn-secondary">Cancelar</a>
 
                 </form>
 
