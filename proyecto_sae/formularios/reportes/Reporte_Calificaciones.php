@@ -2,12 +2,6 @@
 require_once __DIR__ . "/../../config/conexion.php";
 
 function h($t) { return htmlspecialchars((string)$t); }
-
-// =====================================================================
-//  Genera un archivo .xlsx real
-//  $datos es un arreglo de filas; la fila 0 son los encabezados.
-//  Devuelve la ruta del archivo temporal.
-// =====================================================================
 function crearXlsx(array $datos) {
     $xml = function ($t) { return htmlspecialchars((string)$t, ENT_XML1 | ENT_QUOTES, "UTF-8"); };
 
@@ -48,8 +42,6 @@ function crearXlsx(array $datos) {
 
     return $tmp;
 }
-
-// ---------- Filtros (GET: solo consulta, no modifica nada) ----------
 $idUnidad = (int)($_GET["id_unidad"] ?? 0);
 $idGrupo  = (int)($_GET["id_grupo"] ?? 0);
 
@@ -68,8 +60,6 @@ if ($idUnidad > 0) {
     foreach ($grupos as $g) {
         if ($g["ID_GRUPOS"] == $idGrupo) { $nombreGrupo = $g["NOMBRE_GRUPO"]; }
     }
-
-    // Todos los alumnos activos (o los de un grupo) con su calificación en la unidad, si ya la tienen
     $joinGrupo = "";
     $tipos = "i";
     $params = [$idUnidad];
@@ -95,7 +85,6 @@ if ($idUnidad > 0) {
     $stmt->close();
 }
 
-// ---------- Descarga (se hace antes de imprimir cualquier HTML) ----------
 $hayZip = class_exists("ZipArchive");
 
 if (isset($_GET["descargar"]) && count($filas) > 0) {
@@ -124,7 +113,6 @@ if (isset($_GET["descargar"]) && count($filas) > 0) {
         readfile($archivo);
         unlink($archivo);
     } else {
-        // Plan B si la extensión zip no está activa: CSV (Excel también lo abre)
         header("Content-Type: text/csv; charset=UTF-8");
         header('Content-Disposition: attachment; filename="' . $nombreArchivo . '.csv"');
         echo "\xEF\xBB\xBF";
