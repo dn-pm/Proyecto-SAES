@@ -162,7 +162,7 @@ if (isset($_GET["descargar"]) && count($filas) > 0) {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Grupo (opcional)</label>
+                    <label class="form-label">Grupo</label>
                     <select name="id_grupo" class="form-select">
                         <option value="0">Todos los grupos</option>
                         <?php foreach ($grupos as $g) { ?>
