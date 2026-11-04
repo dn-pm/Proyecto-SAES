@@ -1,3 +1,12 @@
+-- =====================================================================
+--  Proyecto SAE - Programación II
+--  Un solo archivo: crea la base, las tablas y carga 8 registros de ejemplo.
+--  ATENCIÓN: borra y vuelve a crear las tablas, así que se pierden los datos
+--  que se hayan capturado. Se puede ejecutar las veces que se necesite para
+--  regresar la base a su estado inicial.
+-- =====================================================================
+
+SET NAMES utf8mb4;
 
 CREATE DATABASE IF NOT EXISTS proyecto_sae
     CHARACTER SET utf8mb4
@@ -5,6 +14,7 @@ CREATE DATABASE IF NOT EXISTS proyecto_sae
 
 USE proyecto_sae;
 
+-- ---------- Limpieza (incluye tablas viejas que ya no se usan) ----------
 DROP TABLE IF EXISTS calificaciones;
 DROP TABLE IF EXISTS asignatura;
 DROP TABLE IF EXISTS grupo_alumno;
@@ -14,6 +24,10 @@ DROP TABLE IF EXISTS profesores;
 DROP TABLE IF EXISTS grupos;
 DROP TABLE IF EXISTS grupo;
 DROP TABLE IF EXISTS alumnos;
+
+-- =====================================================================
+--  CATÁLOGOS
+-- =====================================================================
 
 CREATE TABLE alumnos (
     ID_ALUMNOS        INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,6 +76,10 @@ CREATE TABLE unidad (
     ESTATUS      VARCHAR(4) NOT NULL DEFAULT 'ALTA'
 );
 
+-- =====================================================================
+--  PROCESOS
+-- =====================================================================
+
 CREATE TABLE grupo_alumno (
     ID_GRUPOS   INT NOT NULL,
     ID_ALUMNOS  INT NOT NULL,
@@ -84,6 +102,10 @@ CREATE TABLE calificaciones (
     ID_UNIDAD        INT NOT NULL,
     UNIQUE KEY uq_alumno_unidad (ID_ALUMNOS, ID_UNIDAD)
 );
+
+-- =====================================================================
+--  DATOS DE EJEMPLO (8 por tabla)
+-- =====================================================================
 
 INSERT INTO alumnos (ID_ALUMNOS, MATRICULA, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, DOMICILIO, CORREO, TELEFONO, ESTATUS) VALUES
 (1, 'TIC2026001', 'Carlos',   'Hernández', 'López',    'Calle Reforma 101, Centro',    'carlos.hernandez@correo.com', '5512345001', 'ALTA'),

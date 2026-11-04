@@ -288,7 +288,9 @@ if ($modo === "individual") {
                         </div>
 
                         <button type="submit" name="guardar" class="btn btn-primary">Guardar calificaciones</button>
-                        <span class="text-muted small ms-2">Solo se guardan las filas que tengan calificación capturada.</span>
+                        <a href="<?= $base ?>/formularios/reportes/Reporte_Calificaciones.php?id_unidad=<?= $idUnidad ?>" class="btn btn-outline-success">Enviar a Reportes</a>
+                        <a href="<?= $base ?>/formularios/reportes/Reporte_Calificaciones.php?id_unidad=<?= $idUnidad ?>&descargar=1" class="btn btn-success">Descargar Excel</a>
+                        <div class="text-muted small mt-2">Solo se guardan las filas que tengan calificación capturada. Guarda antes de enviar al reporte: el Excel incluye las calificaciones ya guardadas.</div>
                     </form>
                 <?php } ?>
 
