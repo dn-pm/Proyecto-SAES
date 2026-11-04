@@ -1,3 +1,19 @@
+<?php
+$navbarSolo = isset($_SERVER["SCRIPT_FILENAME"]) && realpath($_SERVER["SCRIPT_FILENAME"]) === realpath(__FILE__);
+
+if ($navbarSolo) {
+    $base = preg_replace('#/NavBar/.*$#i', '', $_SERVER["SCRIPT_NAME"]);
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar - Proyecto SAE</title>
+    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<?php } ?>
 <!-- PRUEBA NAVBAR NUEVO -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
@@ -48,3 +64,8 @@
 
   </div>
 </nav>
+<?php if ($navbarSolo) { ?>
+<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+<?php } ?>
