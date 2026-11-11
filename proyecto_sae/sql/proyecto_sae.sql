@@ -6,7 +6,7 @@ CREATE DATABASE IF NOT EXISTS proyecto_sae
 
 USE proyecto_sae;
 
--- ---------- Limpieza (incluye tablas viejas que ya no se usan) ----------
+-- ---------- Limpieza ----------
 DROP TABLE IF EXISTS usuarios;
 DROP TABLE IF EXISTS puesto;
 DROP TABLE IF EXISTS calificaciones;
