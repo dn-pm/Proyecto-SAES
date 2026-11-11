@@ -50,12 +50,10 @@ if ($navbarSolo) {
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Reportes</a>
           <ul class="dropdown-menu bg-dark">
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Calificaciones.php">Calificaciones por unidad (Excel)</a></li>
-            <li><hr class="dropdown-divider border-secondary"></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Alumnos.php">Alumnos</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Profesores.php">Profesores</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Grupos.php">Grupos</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Materias.php">Materias</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Alumnos_Grupo.php">Alumnos por grupo</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Materias_Alumno.php">Materias por alumno</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Calificaciones.php">Calificaciones por materia y grupo</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Boleta.php">Boleta de calificaciones</a></li>
           </ul>
         </li>
 

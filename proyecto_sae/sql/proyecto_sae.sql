@@ -7,6 +7,8 @@ CREATE DATABASE IF NOT EXISTS proyecto_sae
 USE proyecto_sae;
 
 -- ---------- Limpieza (incluye tablas viejas que ya no se usan) ----------
+DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS puesto;
 DROP TABLE IF EXISTS calificaciones;
 DROP TABLE IF EXISTS asignatura;
 DROP TABLE IF EXISTS grupo_alumno;
@@ -90,13 +92,33 @@ CREATE TABLE asignatura (
 CREATE TABLE calificaciones (
     ID_CALIFICACION  INT AUTO_INCREMENT PRIMARY KEY,
     ID_ALUMNOS       INT NOT NULL,
+    ID_MATERIAS      INT NOT NULL,           -- materia a la que pertenece la calificación
     CALIFICACION     DECIMAL(4,1) NOT NULL,
     ID_UNIDAD        INT NOT NULL,
-    UNIQUE KEY uq_alumno_unidad (ID_ALUMNOS, ID_UNIDAD)
+    UNIQUE KEY uq_alumno_materia_unidad (ID_ALUMNOS, ID_MATERIAS, ID_UNIDAD)
 );
 
 -- =====================================================================
---  DATOS DE EJEMPLO (8 por tabla)
+--  USUARIOS Y PUESTOS 
+-- =====================================================================
+
+CREATE TABLE puesto (
+    ID_PUESTO           INT AUTO_INCREMENT PRIMARY KEY,
+    DESCRIPCION_PUESTO  VARCHAR(50) NOT NULL,
+    STATUS_PUESTO       VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
+);
+
+CREATE TABLE usuarios (
+    ID_USER      INT AUTO_INCREMENT PRIMARY KEY,
+    NOMBREUSER   VARCHAR(50) NOT NULL,
+    PWUSER       VARCHAR(40) NOT NULL,   -- hash MD5 (32 caracteres) o SHA1 (40 caracteres)
+    PUESTO       INT NOT NULL,           -- llave foránea a puesto.ID_PUESTO
+    STATUS_USER  VARCHAR(4)  NOT NULL DEFAULT 'ALTA',
+    CONSTRAINT fk_usuarios_puesto FOREIGN KEY (PUESTO) REFERENCES puesto (ID_PUESTO)
+);
+
+-- =====================================================================
+--  DATOS DE EJEMPLO 
 -- =====================================================================
 
 INSERT INTO alumnos (ID_ALUMNOS, MATRICULA, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, DOMICILIO, CORREO, TELEFONO, ESTATUS) VALUES
@@ -149,7 +171,7 @@ INSERT INTO unidad (ID_UNIDAD, DESCRIPCION, ESTATUS) VALUES
 (7, 'Unidad 7 - Proyecto parcial', 'ALTA'),
 (8, 'Unidad 8 - Proyecto final',   'ALTA');
 
--- Inscripciones a grupos (una está en BAJA para ver ambos estatus)
+-- Inscripciones a grupos
 INSERT INTO grupo_alumno (ID_GRUPOS, ID_ALUMNOS, ESTATUS) VALUES
 (1, 1, 'ALTA'),
 (1, 2, 'ALTA'),
@@ -171,14 +193,12 @@ INSERT INTO asignatura (ID_ASIGNATURA, ID_MATERIAS, ID_ALUMNOS, ID_PROFESORES) V
 (7, 5, 5, 5),
 (8, 6, 6, 6);
 
--- Calificaciones: alumnos 1 a 4 en las unidades 1 y 2.
--- Quedan libres las unidades 3 a 8 y los alumnos 5 a 8 para probar la captura.
-INSERT INTO calificaciones (ID_ALUMNOS, CALIFICACION, ID_UNIDAD) VALUES
-(1, 9.5, 1),
-(2, 8.0, 1),
-(3, 7.5, 1),
-(4, 10.0, 1),
-(1, 9.0, 2),
-(2, 8.5, 2),
-(3, 7.0, 2),
-(4, 9.5, 2);
+INSERT INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD) VALUES
+(1, 1, 9.5, 1),
+(1, 1, 9.0, 2),
+(1, 2, 8.0, 1),
+(1, 2, 8.5, 2),
+(2, 1, 8.0, 1),
+(2, 1, 8.5, 2),
+(2, 3, 7.5, 1),
+(2, 3, 7.0, 2);
