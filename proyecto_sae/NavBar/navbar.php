@@ -1,19 +1,3 @@
-<?php
-$navbarSolo = isset($_SERVER["SCRIPT_FILENAME"]) && realpath($_SERVER["SCRIPT_FILENAME"]) === realpath(__FILE__);
-
-if ($navbarSolo) {
-    $base = preg_replace('#/NavBar/.*$#i', '', $_SERVER["SCRIPT_NAME"]);
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navbar - Proyecto SAE</title>
-    <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-<?php } ?>
 <!-- PRUEBA NAVBAR NUEVO -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
@@ -50,10 +34,10 @@ if ($navbarSolo) {
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Reportes</a>
           <ul class="dropdown-menu bg-dark">
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Alumnos_Grupo.php">Alumnos por grupo</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Materias_Alumno.php">Materias por alumno</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Calificaciones.php">Calificaciones por materia y grupo</a></li>
-            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/reportes/Reporte_Boleta.php">Boleta de calificaciones</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Alumnos.php">Alumnos</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Profesores.php">Profesores</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Grupos.php">Grupos</a></li>
+            <li><a class="dropdown-item text-light" href="<?= $base ?>/formularios/modificar/Modificar_Materias.php">Materias</a></li>
           </ul>
         </li>
 
@@ -62,8 +46,3 @@ if ($navbarSolo) {
 
   </div>
 </nav>
-<?php if ($navbarSolo) { ?>
-<script src="<?= $base ?>/assets/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-<?php } ?>
