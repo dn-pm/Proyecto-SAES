@@ -1,11 +1,3 @@
--- =====================================================================
---  Proyecto SAE - Programación II
---  Un solo archivo: crea la base, las tablas y carga 8 registros de ejemplo.
---  ATENCIÓN: borra y vuelve a crear las tablas, así que se pierden los datos
---  que se hayan capturado. Se puede ejecutar las veces que se necesite para
---  regresar la base a su estado inicial.
--- =====================================================================
-
 SET NAMES utf8mb4;
 
 CREATE DATABASE IF NOT EXISTS proyecto_sae
