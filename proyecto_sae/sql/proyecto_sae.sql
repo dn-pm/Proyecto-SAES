@@ -1,3 +1,12 @@
+-- =====================================================================
+--  Proyecto SAE - Programación II
+--  Un solo archivo: crea la base, las tablas y carga 8 registros de ejemplo.
+--  ATENCIÓN: borra y vuelve a crear las tablas, así que se pierden los datos
+--  que se hayan capturado. Se puede ejecutar las veces que se necesite para
+--  regresar la base a su estado inicial.
+-- =====================================================================
+
+SET NAMES utf8mb4;
 
 CREATE DATABASE IF NOT EXISTS proyecto_sae
     CHARACTER SET utf8mb4
@@ -5,6 +14,9 @@ CREATE DATABASE IF NOT EXISTS proyecto_sae
 
 USE proyecto_sae;
 
+-- ---------- Limpieza (incluye tablas viejas que ya no se usan) ----------
+DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS puesto;
 DROP TABLE IF EXISTS calificaciones;
 DROP TABLE IF EXISTS asignatura;
 DROP TABLE IF EXISTS grupo_alumno;
@@ -14,6 +26,10 @@ DROP TABLE IF EXISTS profesores;
 DROP TABLE IF EXISTS grupos;
 DROP TABLE IF EXISTS grupo;
 DROP TABLE IF EXISTS alumnos;
+
+-- =====================================================================
+--  CATÁLOGOS
+-- =====================================================================
 
 CREATE TABLE alumnos (
     ID_ALUMNOS        INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,6 +78,10 @@ CREATE TABLE unidad (
     ESTATUS      VARCHAR(4) NOT NULL DEFAULT 'ALTA'
 );
 
+-- =====================================================================
+--  PROCESOS
+-- =====================================================================
+
 CREATE TABLE grupo_alumno (
     ID_GRUPOS   INT NOT NULL,
     ID_ALUMNOS  INT NOT NULL,
@@ -80,10 +100,35 @@ CREATE TABLE asignatura (
 CREATE TABLE calificaciones (
     ID_CALIFICACION  INT AUTO_INCREMENT PRIMARY KEY,
     ID_ALUMNOS       INT NOT NULL,
+    ID_MATERIAS      INT NOT NULL,           -- materia a la que pertenece la calificación
     CALIFICACION     DECIMAL(4,1) NOT NULL,
     ID_UNIDAD        INT NOT NULL,
-    UNIQUE KEY uq_alumno_unidad (ID_ALUMNOS, ID_UNIDAD)
+    UNIQUE KEY uq_alumno_materia_unidad (ID_ALUMNOS, ID_MATERIAS, ID_UNIDAD)
 );
+
+-- =====================================================================
+--  USUARIOS Y PUESTOS (para la pantalla de inicio de sesión)
+-- =====================================================================
+
+CREATE TABLE puesto (
+    ID_PUESTO           INT AUTO_INCREMENT PRIMARY KEY,
+    DESCRIPCION_PUESTO  VARCHAR(50) NOT NULL,
+    STATUS_PUESTO       VARCHAR(4)  NOT NULL DEFAULT 'ALTA'
+);
+
+CREATE TABLE usuarios (
+    ID_USER      INT AUTO_INCREMENT PRIMARY KEY,
+    NOMBREUSER   VARCHAR(50) NOT NULL,
+    PWUSER       VARCHAR(40) NOT NULL,   -- hash MD5 (32 caracteres) o SHA1 (40 caracteres)
+    PUESTO       INT NOT NULL,           -- llave foránea a puesto.ID_PUESTO
+    STATUS_USER  VARCHAR(4)  NOT NULL DEFAULT 'ALTA',
+    UNIQUE KEY uq_nombreuser (NOMBREUSER),   -- no puede haber dos usuarios con el mismo nombre
+    CONSTRAINT fk_usuarios_puesto FOREIGN KEY (PUESTO) REFERENCES puesto (ID_PUESTO)
+);
+
+-- =====================================================================
+--  DATOS DE EJEMPLO (8 por tabla)
+-- =====================================================================
 
 INSERT INTO alumnos (ID_ALUMNOS, MATRICULA, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, DOMICILIO, CORREO, TELEFONO, ESTATUS) VALUES
 (1, 'TIC2026001', 'Carlos',   'Hernández', 'López',    'Calle Reforma 101, Centro',    'carlos.hernandez@correo.com', '5512345001', 'ALTA'),
@@ -157,14 +202,38 @@ INSERT INTO asignatura (ID_ASIGNATURA, ID_MATERIAS, ID_ALUMNOS, ID_PROFESORES) V
 (7, 5, 5, 5),
 (8, 6, 6, 6);
 
--- Calificaciones: alumnos 1 a 4 en las unidades 1 y 2.
--- Quedan libres las unidades 3 a 8 y los alumnos 5 a 8 para probar la captura.
-INSERT INTO calificaciones (ID_ALUMNOS, CALIFICACION, ID_UNIDAD) VALUES
-(1, 9.5, 1),
-(2, 8.0, 1),
-(3, 7.5, 1),
-(4, 10.0, 1),
-(1, 9.0, 2),
-(2, 8.5, 2),
-(3, 7.0, 2),
-(4, 9.5, 2);
+-- Calificaciones (alumno, materia, calificación, unidad).
+-- Alumno 1: Programación I y II | Alumno 2: Programación I y Bases de Datos.
+-- Quedan libres las unidades 3 a 8 y los demás alumnos para probar la captura.
+INSERT INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD) VALUES
+(1, 1, 9.5, 1),
+(1, 1, 9.0, 2),
+(1, 2, 8.0, 1),
+(1, 2, 8.5, 2),
+(2, 1, 8.0, 1),
+(2, 1, 8.5, 2),
+(2, 3, 7.5, 1),
+(2, 3, 7.0, 2);
+
+-- Puestos y usuarios de ejemplo.
+-- La contraseña de cada usuario es su nombre de usuario + 123 (por ejemplo admin / admin123)
+-- y se guarda encriptada con SHA1, igual que lo hace el formulario de registro.
+INSERT INTO puesto (ID_PUESTO, DESCRIPCION_PUESTO, STATUS_PUESTO) VALUES
+(1, 'Administrador',          'ALTA'),
+(2, 'Director',               'ALTA'),
+(3, 'Subdirector',            'ALTA'),
+(4, 'Control escolar',        'ALTA'),
+(5, 'Coordinador académico',  'ALTA'),
+(6, 'Docente',                'ALTA'),
+(7, 'Capturista',             'ALTA'),
+(8, 'Prefecto',               'ALTA');
+
+INSERT INTO usuarios (ID_USER, NOMBREUSER, PWUSER, PUESTO, STATUS_USER) VALUES
+(1, 'admin',          SHA1('admin123'),          1, 'ALTA'),
+(2, 'director',       SHA1('director123'),       2, 'ALTA'),
+(3, 'subdirector',    SHA1('subdirector123'),    3, 'ALTA'),
+(4, 'controlescolar', SHA1('controlescolar123'), 4, 'ALTA'),
+(5, 'coordinador',    SHA1('coordinador123'),    5, 'ALTA'),
+(6, 'docente',        SHA1('docente123'),        6, 'ALTA'),
+(7, 'capturista',     SHA1('capturista123'),     7, 'ALTA'),
+(8, 'prefecto',       SHA1('prefecto123'),       8, 'ALTA');

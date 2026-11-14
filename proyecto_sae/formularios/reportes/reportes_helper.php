@@ -1,4 +1,9 @@
 <?php
+// =====================================================================
+//  Funciones comunes de los reportes: escapar texto, promedios y
+//  descarga en Excel (.xlsx real, sin librerías externas: solo ZipArchive)
+// =====================================================================
+
 function h($t) { return htmlspecialchars((string)$t); }
 
 // Promedio de los valores capturados (ignora los vacíos). Devuelve null si no hay ninguno.
@@ -22,7 +27,7 @@ function nombreArchivo($t) {
     return trim($t, "_");
 }
 
-
+// 0 -> A, 25 -> Z, 26 -> AA ...
 function letraColumna($i) {
     $letra = "";
     $i++;
@@ -34,6 +39,12 @@ function letraColumna($i) {
     return $letra;
 }
 
+// ---------------------------------------------------------------------
+//  Genera un .xlsx. $datos es un arreglo de filas (con índices 0, 1, 2...).
+//  $filaEncabezado: fila con los encabezados (fondo azul, letras blancas).
+//  $filasTitulo: filas de título (negritas), por ejemplo el nombre del reporte.
+//  Devuelve la ruta de un archivo temporal.
+// ---------------------------------------------------------------------
 function crearXlsx(array $datos, $filaEncabezado = 0, array $filasTitulo = []) {
     $xml = function ($t) { return htmlspecialchars((string)$t, ENT_XML1 | ENT_QUOTES, "UTF-8"); };
 
@@ -136,6 +147,10 @@ function crearXlsx(array $datos, $filaEncabezado = 0, array $filasTitulo = []) {
     return $tmp;
 }
 
+// ---------------------------------------------------------------------
+//  Envía el archivo al navegador y termina. Debe llamarse antes de
+//  imprimir cualquier HTML. Si no existe la extensión zip, manda un CSV.
+// ---------------------------------------------------------------------
 function enviarExcel(array $datos, $nombre, $filaEncabezado = 0, array $filasTitulo = []) {
     if (ob_get_length()) { ob_clean(); }
 

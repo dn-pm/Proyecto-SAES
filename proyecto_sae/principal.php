@@ -27,12 +27,14 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
             <div class="card shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-person-plus"></i> Registros</h5>
-                    <p class="card-text">Catálogos de alumnos, profesores, grupos, materias y unidades.</p>
+                    <p class="card-text">Catálogos de alumnos, profesores, grupos, materias, unidades, puestos y usuarios.</p>
                     <a href="<?= $base ?>/Cruds/crudalumnos.php" class="btn btn-primary btn-sm">Alumnos</a>
                     <a href="<?= $base ?>/Cruds/crudprofesores.php" class="btn btn-primary btn-sm">Profesores</a>
                     <a href="<?= $base ?>/Cruds/crudgrupos.php" class="btn btn-primary btn-sm">Grupos</a>
                     <a href="<?= $base ?>/Cruds/crudmaterias.php" class="btn btn-primary btn-sm">Materias</a>
                     <a href="<?= $base ?>/Cruds/crudunidades.php" class="btn btn-primary btn-sm">Unidades</a>
+                    <a href="<?= $base ?>/Cruds/crudpuestos.php" class="btn btn-primary btn-sm">Puestos</a>
+                    <a href="<?= $base ?>/Cruds/crudusuarios.php" class="btn btn-primary btn-sm">Usuarios</a>
                 </div>
             </div>
         </div>

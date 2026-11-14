@@ -31,7 +31,7 @@ if ($idGrupo > 0) {
     }
 }
 
-// ---------- Descarga en Excel ----------
+// ---------- Descarga en Excel (antes de imprimir HTML) ----------
 if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
     $datos = [];
     $datos[] = ["Lista de alumnos por grupo"];
