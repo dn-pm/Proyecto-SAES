@@ -1,20 +1,35 @@
 <?php
 $mysqli = include "conexion.php";
+requerirRol(['ADMINISTRADOR']);
+
+$aviso = "";
 
 // ---------- BAJA ----------
 if (isset($_GET["baja"])) {
     $id = (int) $_GET["baja"];
-    $stmt = $mysqli->prepare("UPDATE usuarios SET STATUS_USER = 'BAJA' WHERE ID_USER = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $stmt->close();
-    header("Location: crudusuarios.php");
-    exit;
+    if ($id === (int) $_SESSION["id_user"]) {
+        $aviso = "No puedes dar de baja tu propio usuario mientras tienes la sesión iniciada.";
+    } else {
+        $stmt = $mysqli->prepare("UPDATE usuarios SET STATUS_USER = 'BAJA' WHERE ID_USER = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+        header("Location: crudusuarios.php");
+        exit;
+    }
 }
 
 // ---------- LISTADO ----------
-$resultado = $mysqli->query("SELECT u.ID_USER AS iduser, u.NOMBREUSER AS nombreuser, p.DESCRIPCION_PUESTO AS puesto FROM usuarios u INNER JOIN puesto p ON p.ID_PUESTO = u.PUESTO WHERE u.STATUS_USER = 'ALTA' ORDER BY u.NOMBREUSER");
-$usuarios = $resultado->fetch_all(MYSQLI_ASSOC);
+$sql = "SELECT u.ID_USER, u.NOMBREUSER, p.DESCRIPCION_PUESTO, u.STATUS_USER,
+               CONCAT(pr.CLAVE, ' - ', pr.NOMBRE, ' ', pr.APELLIDO_PATERNO) AS PROFESOR_VINCULADO,
+               CONCAT(al.MATRICULA, ' - ', al.NOMBRE, ' ', al.APELLIDO_PATERNO) AS ALUMNO_VINCULADO
+        FROM usuarios u
+        INNER JOIN puesto p ON p.ID_PUESTO = u.PUESTO
+        LEFT JOIN profesores pr ON pr.ID_PROFESORES = u.ID_PROFESORES
+        LEFT JOIN alumnos al ON al.ID_ALUMNOS = u.ID_ALUMNOS
+        WHERE u.STATUS_USER = 'ALTA'
+        ORDER BY u.ID_USER";
+$usuarios = $mysqli->query($sql)->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -38,8 +53,12 @@ $usuarios = $resultado->fetch_all(MYSQLI_ASSOC);
     <h1 align="center">Catálogo de Usuarios</h1>
     <br>
 
+    <?php if ($aviso !== "") { ?>
+        <div class="alert alert-warning"><?= htmlspecialchars($aviso) ?></div>
+    <?php } ?>
+
     <div class="d-flex justify-content-end mb-3">
-        <a href="<?= $base ?>/formularios/alta/Formulario_Usuarios.php" class="btn btn-success">
+        <a href="<?= $base ?>/formularios/alta/Formulario_Usuario.php" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Registrar nuevo usuario
         </a>
     </div>
@@ -49,7 +68,8 @@ $usuarios = $resultado->fetch_all(MYSQLI_ASSOC);
             <tr>
                 <th scope="col">#</th>
                 <th scope="col">Usuario</th>
-                <th scope="col">Puesto</th>
+                <th scope="col">Puesto / Jerarquía</th>
+                <th scope="col">Persona Vinculada</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
             </tr>
@@ -57,23 +77,33 @@ $usuarios = $resultado->fetch_all(MYSQLI_ASSOC);
         <tbody>
 <?php if (count($usuarios) === 0) { ?>
             <tr>
-                <td colspan="5" class="text-center text-muted">No hay usuarios registrados.</td>
+                <td colspan="6" class="text-center text-muted">No hay usuarios registrados.</td>
             </tr>
 <?php } ?>
-<?php foreach ($usuarios as $usuario) { ?>
+<?php foreach ($usuarios as $u) {
+    $vinculo = "Acceso general administrativo";
+    if (!empty($u["PROFESOR_VINCULADO"])) {
+        $vinculo = "Profesor: " . $u["PROFESOR_VINCULADO"];
+    } elseif (!empty($u["ALUMNO_VINCULADO"])) {
+        $vinculo = "Alumno: " . $u["ALUMNO_VINCULADO"];
+    }
+?>
             <tr>
-                <th scope="row"><?php echo $usuario["iduser"]; ?></th>
-                <td><?php echo htmlspecialchars($usuario["nombreuser"]); ?></td>
-                <td><?php echo htmlspecialchars($usuario["puesto"]); ?></td>
+                <th scope="row"><?= (int)$u["ID_USER"] ?></th>
+                <td><?= htmlspecialchars($u["NOMBREUSER"]) ?></td>
+                <td><?= htmlspecialchars($u["DESCRIPCION_PUESTO"]) ?></td>
+                <td><?= htmlspecialchars($vinculo) ?></td>
                 <td>
-                    <a href="<?= $base ?>/formularios/modificar/Modificar_Usuarios.php?id=<?php echo $usuario["iduser"]; ?>" class="btn btn-sm btn-primary" title="Modificar">
+                    <a href="<?= $base ?>/formularios/modificar/Modificar_Usuario.php?id=<?= (int)$u["ID_USER"] ?>" class="btn btn-sm btn-primary" title="Modificar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                 </td>
                 <td>
-                    <a href="crudusuarios.php?baja=<?php echo $usuario["iduser"]; ?>" class="btn btn-sm btn-secondary" title="Baja" onclick="return confirm('¿Dar de baja este usuario?');">
-                        <i class="bi bi-eject-fill"></i>
-                    </a>
+                    <?php if ((int)$u["ID_USER"] !== (int)$_SESSION["id_user"]) { ?>
+                        <a href="crudusuarios.php?baja=<?= (int)$u["ID_USER"] ?>" class="btn btn-sm btn-secondary" title="Baja" onclick="return confirm('¿Dar de baja este usuario?');">
+                            <i class="bi bi-eject-fill"></i>
+                        </a>
+                    <?php } ?>
                 </td>
             </tr>
 <?php } ?>

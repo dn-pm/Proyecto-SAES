@@ -1,10 +1,14 @@
 <?php
 require_once __DIR__ . "/../../config/conexion.php";
 require_once __DIR__ . "/reportes_helper.php";
+requerirRol(['ADMINISTRADOR', 'ALUMNO']);
 
-$idAlumno = (int)($_GET["id_alumno"] ?? 0);
+$soloAlumno = esAlumno();
+$idAlumno = $soloAlumno ? (int)$_SESSION["id_alumno"] : (int)($_GET["id_alumno"] ?? 0);
 
-$alumnos = $conexion->query("SELECT ID_ALUMNOS, MATRICULA, CONCAT(APELLIDO_PATERNO, ' ', APELLIDO_MATERNO, ' ', NOMBRE) AS NOMBRE_COMPLETO FROM alumnos WHERE ESTATUS = 'ALTA' ORDER BY APELLIDO_PATERNO, APELLIDO_MATERNO, NOMBRE")->fetch_all(MYSQLI_ASSOC);
+$alumnos = $soloAlumno
+    ? []
+    : $conexion->query("SELECT ID_ALUMNOS, MATRICULA, CONCAT(APELLIDO_PATERNO, ' ', APELLIDO_MATERNO, ' ', NOMBRE) AS NOMBRE_COMPLETO FROM alumnos WHERE ESTATUS = 'ALTA' ORDER BY APELLIDO_PATERNO, APELLIDO_MATERNO, NOMBRE")->fetch_all(MYSQLI_ASSOC);
 
 $alumno = null;
 $materias = [];
@@ -88,29 +92,31 @@ if (isset($_GET["descargar"]) && $alumno !== null && count($materias) > 0) {
 
         <div class="card-body">
 
-            <form method="GET" class="row g-3 mb-4 no-imprimir">
-                <div class="col-md-8">
-                    <label class="form-label">Alumno</label>
-                    <select name="id_alumno" class="form-select" required>
-                        <option value="">Selecciona un alumno...</option>
-                        <?php foreach ($alumnos as $a) { ?>
-                            <option value="<?= $a["ID_ALUMNOS"] ?>" <?= $idAlumno == $a["ID_ALUMNOS"] ? "selected" : "" ?>>
-                                <?= h($a["MATRICULA"] . " - " . $a["NOMBRE_COMPLETO"]) ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary">Ver lista</button>
-                </div>
-            </form>
+            <?php if (!$soloAlumno) { ?>
+                <form method="GET" class="row g-3 mb-4 no-imprimir">
+                    <div class="col-md-8">
+                        <label class="form-label">Alumno</label>
+                        <select name="id_alumno" class="form-select" required>
+                            <option value="">Selecciona un alumno...</option>
+                            <?php foreach ($alumnos as $a) { ?>
+                                <option value="<?= $a["ID_ALUMNOS"] ?>" <?= $idAlumno == $a["ID_ALUMNOS"] ? "selected" : "" ?>>
+                                    <?= h($a["MATRICULA"] . " - " . $a["NOMBRE_COMPLETO"]) ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-secondary">Ver lista</button>
+                    </div>
+                </form>
+            <?php } ?>
 
             <?php if ($idAlumno > 0 && $alumno === null) { ?>
                 <div class="alert alert-warning">No se encontró el alumno seleccionado.</div>
             <?php } ?>
 
             <?php if ($alumno !== null) { ?>
-                <hr class="no-imprimir">
+                <?php if (!$soloAlumno) { ?><hr class="no-imprimir"><?php } ?>
 
                 <div class="mb-3">
                     <h5 class="mb-1"><?= h($alumno["NOMBRE_COMPLETO"]) ?></h5>
@@ -153,7 +159,7 @@ if (isset($_GET["descargar"]) && $alumno !== null && count($materias) > 0) {
 
                 <?php if (count($materias) > 0) { ?>
                     <div class="no-imprimir">
-                        <a href="?id_alumno=<?= $idAlumno ?>&descargar=1" class="btn btn-success">Descargar Excel</a>
+                        <a href="<?= $soloAlumno ? "?descargar=1" : "?id_alumno=" . $idAlumno . "&descargar=1" ?>" class="btn btn-success">Descargar Excel</a>
                         <button type="button" class="btn btn-outline-secondary" onclick="window.print()">Imprimir</button>
                     </div>
                 <?php } ?>

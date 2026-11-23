@@ -1,12 +1,42 @@
 <?php
 require_once __DIR__ . "/../../config/conexion.php";
 require_once __DIR__ . "/reportes_helper.php";
+requerirRol(['ADMINISTRADOR', 'MAESTRO']);
 
 $idMateria = (int)($_GET["id_materia"] ?? 0);
 $idGrupo   = (int)($_GET["id_grupo"] ?? 0);
+$soloMaestro = esMaestro();
+$idProfesorSesion = $soloMaestro ? (int)$_SESSION["id_profesor"] : 0;
 
-$materias = $conexion->query("SELECT ID_MATERIAS, CLAVE_MATERIA, NOMBRE_MATERIA FROM materias WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_MATERIA")->fetch_all(MYSQLI_ASSOC);
-$grupos   = $conexion->query("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_GRUPO")->fetch_all(MYSQLI_ASSOC);
+if ($soloMaestro) {
+    $stmt = $conexion->prepare(
+        "SELECT DISTINCT m.ID_MATERIAS, m.CLAVE_MATERIA, m.NOMBRE_MATERIA
+         FROM materias m
+         INNER JOIN asignatura s ON s.ID_MATERIAS = m.ID_MATERIAS
+         WHERE m.ESTATUS = 'ALTA' AND s.ID_PROFESORES = ?
+         ORDER BY m.NOMBRE_MATERIA"
+    );
+    $stmt->bind_param("i", $idProfesorSesion);
+    $stmt->execute();
+    $materias = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    $stmt = $conexion->prepare(
+        "SELECT DISTINCT g.ID_GRUPOS, g.NOMBRE_GRUPO
+         FROM grupos g
+         INNER JOIN grupo_alumno ga ON ga.ID_GRUPOS = g.ID_GRUPOS AND ga.ESTATUS = 'ALTA'
+         INNER JOIN asignatura s ON s.ID_ALUMNOS = ga.ID_ALUMNOS
+         WHERE g.ESTATUS = 'ALTA' AND s.ID_PROFESORES = ?
+         ORDER BY g.NOMBRE_GRUPO"
+    );
+    $stmt->bind_param("i", $idProfesorSesion);
+    $stmt->execute();
+    $grupos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    $materias = $conexion->query("SELECT ID_MATERIAS, CLAVE_MATERIA, NOMBRE_MATERIA FROM materias WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_MATERIA")->fetch_all(MYSQLI_ASSOC);
+    $grupos   = $conexion->query("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_GRUPO")->fetch_all(MYSQLI_ASSOC);
+}
 $unidades = $conexion->query("SELECT ID_UNIDAD, DESCRIPCION FROM unidad WHERE ESTATUS = 'ALTA' ORDER BY ID_UNIDAD")->fetch_all(MYSQLI_ASSOC);
 
 $materia = null;
@@ -15,37 +45,61 @@ $filas = [];
 $notas = [];
 
 if ($idMateria > 0 && $idGrupo > 0) {
+    $permitido = true;
+    if ($soloMaestro) {
+        $matOk = false;
+        foreach ($materias as $mItem) {
+            if ((int)$mItem["ID_MATERIAS"] === $idMateria) { $matOk = true; break; }
+        }
+        $grpOk = false;
+        foreach ($grupos as $gItem) {
+            if ((int)$gItem["ID_GRUPOS"] === $idGrupo) { $grpOk = true; break; }
+        }
+        $permitido = $matOk && $grpOk;
+    }
 
-    $stmt = $conexion->prepare("SELECT ID_MATERIAS, CLAVE_MATERIA, NOMBRE_MATERIA FROM materias WHERE ID_MATERIAS = ?");
-    $stmt->bind_param("i", $idMateria);
-    $stmt->execute();
-    $materia = $stmt->get_result()->fetch_assoc() ?: null;
-    $stmt->close();
+    if ($permitido) {
+        $stmt = $conexion->prepare("SELECT ID_MATERIAS, CLAVE_MATERIA, NOMBRE_MATERIA FROM materias WHERE ID_MATERIAS = ?");
+        $stmt->bind_param("i", $idMateria);
+        $stmt->execute();
+        $materia = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
 
-    $stmt = $conexion->prepare("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ID_GRUPOS = ?");
-    $stmt->bind_param("i", $idGrupo);
-    $stmt->execute();
-    $grupo = $stmt->get_result()->fetch_assoc() ?: null;
-    $stmt->close();
+        $stmt = $conexion->prepare("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ID_GRUPOS = ?");
+        $stmt->bind_param("i", $idGrupo);
+        $stmt->execute();
+        $grupo = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+    }
 
     if ($materia !== null && $grupo !== null) {
-
-        // Alumnos activos del grupo que tienen asignada la materia
-        $stmt = $conexion->prepare(
-            "SELECT a.ID_ALUMNOS, a.MATRICULA,
-                    CONCAT(a.APELLIDO_PATERNO, ' ', a.APELLIDO_MATERNO, ' ', a.NOMBRE) AS NOMBRE_COMPLETO
-             FROM grupo_alumno ga
-             INNER JOIN alumnos a ON a.ID_ALUMNOS = ga.ID_ALUMNOS AND a.ESTATUS = 'ALTA'
-             INNER JOIN asignatura s ON s.ID_ALUMNOS = a.ID_ALUMNOS AND s.ID_MATERIAS = ?
-             WHERE ga.ID_GRUPOS = ? AND ga.ESTATUS = 'ALTA'
-             ORDER BY a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE"
-        );
-        $stmt->bind_param("ii", $idMateria, $idGrupo);
+        if ($soloMaestro) {
+            $stmt = $conexion->prepare(
+                "SELECT a.ID_ALUMNOS, a.MATRICULA,
+                        CONCAT(a.APELLIDO_PATERNO, ' ', a.APELLIDO_MATERNO, ' ', a.NOMBRE) AS NOMBRE_COMPLETO
+                 FROM grupo_alumno ga
+                 INNER JOIN alumnos a ON a.ID_ALUMNOS = ga.ID_ALUMNOS AND a.ESTATUS = 'ALTA'
+                 INNER JOIN asignatura s ON s.ID_ALUMNOS = a.ID_ALUMNOS AND s.ID_MATERIAS = ? AND s.ID_PROFESORES = ?
+                 WHERE ga.ID_GRUPOS = ? AND ga.ESTATUS = 'ALTA'
+                 ORDER BY a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE"
+            );
+            $stmt->bind_param("iii", $idMateria, $idProfesorSesion, $idGrupo);
+        } else {
+            $stmt = $conexion->prepare(
+                "SELECT a.ID_ALUMNOS, a.MATRICULA,
+                        CONCAT(a.APELLIDO_PATERNO, ' ', a.APELLIDO_MATERNO, ' ', a.NOMBRE) AS NOMBRE_COMPLETO
+                 FROM grupo_alumno ga
+                 INNER JOIN alumnos a ON a.ID_ALUMNOS = ga.ID_ALUMNOS AND a.ESTATUS = 'ALTA'
+                 INNER JOIN asignatura s ON s.ID_ALUMNOS = a.ID_ALUMNOS AND s.ID_MATERIAS = ?
+                 WHERE ga.ID_GRUPOS = ? AND ga.ESTATUS = 'ALTA'
+                 ORDER BY a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE"
+            );
+            $stmt->bind_param("ii", $idMateria, $idGrupo);
+        }
         $stmt->execute();
         $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Calificaciones de esa materia: $notas[id_alumno][id_unidad]
         $stmt = $conexion->prepare("SELECT ID_ALUMNOS, ID_UNIDAD, CALIFICACION FROM calificaciones WHERE ID_MATERIAS = ?");
         $stmt->bind_param("i", $idMateria);
         $stmt->execute();
@@ -162,7 +216,7 @@ if (isset($_GET["descargar"]) && $materia !== null && $grupo !== null && count($
             <?php } ?>
 
             <?php if ($idMateria > 0 && $idGrupo > 0 && ($materia === null || $grupo === null)) { ?>
-                <div class="alert alert-warning">No se encontró la materia o el grupo seleccionado.</div>
+                <div class="alert alert-warning">No tienes acceso a esa materia o grupo, o no se encontró.</div>
             <?php } ?>
 
             <?php if ($materia !== null && $grupo !== null) { ?>

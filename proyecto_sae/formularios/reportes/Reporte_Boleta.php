@@ -1,12 +1,16 @@
 <?php
 require_once __DIR__ . "/../../config/conexion.php";
 require_once __DIR__ . "/reportes_helper.php";
+requerirRol(['ADMINISTRADOR', 'ALUMNO']);
 
 date_default_timezone_set("America/Mexico_City");
 
-$idAlumno = (int)($_GET["id_alumno"] ?? 0);
+$soloAlumno = esAlumno();
+$idAlumno = $soloAlumno ? (int)$_SESSION["id_alumno"] : (int)($_GET["id_alumno"] ?? 0);
 
-$alumnos  = $conexion->query("SELECT ID_ALUMNOS, MATRICULA, CONCAT(APELLIDO_PATERNO, ' ', APELLIDO_MATERNO, ' ', NOMBRE) AS NOMBRE_COMPLETO FROM alumnos WHERE ESTATUS = 'ALTA' ORDER BY APELLIDO_PATERNO, APELLIDO_MATERNO, NOMBRE")->fetch_all(MYSQLI_ASSOC);
+$alumnos = $soloAlumno
+    ? []
+    : $conexion->query("SELECT ID_ALUMNOS, MATRICULA, CONCAT(APELLIDO_PATERNO, ' ', APELLIDO_MATERNO, ' ', NOMBRE) AS NOMBRE_COMPLETO FROM alumnos WHERE ESTATUS = 'ALTA' ORDER BY APELLIDO_PATERNO, APELLIDO_MATERNO, NOMBRE")->fetch_all(MYSQLI_ASSOC);
 $unidades = $conexion->query("SELECT ID_UNIDAD, DESCRIPCION FROM unidad WHERE ESTATUS = 'ALTA' ORDER BY ID_UNIDAD")->fetch_all(MYSQLI_ASSOC);
 
 $alumno = null;
@@ -22,7 +26,6 @@ if ($idAlumno > 0) {
     $stmt->close();
 
     if ($alumno !== null) {
-        // Materias asignadas al alumno
         $stmt = $conexion->prepare(
             "SELECT m.ID_MATERIAS, m.CLAVE_MATERIA, m.NOMBRE_MATERIA,
                     CONCAT(p.NOMBRE, ' ', p.APELLIDO_PATERNO) AS PROFESOR
@@ -37,7 +40,6 @@ if ($idAlumno > 0) {
         $materias = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Calificaciones: $notas[id_materia][id_unidad]
         $stmt = $conexion->prepare("SELECT ID_MATERIAS, ID_UNIDAD, CALIFICACION FROM calificaciones WHERE ID_ALUMNOS = ?");
         $stmt->bind_param("i", $idAlumno);
         $stmt->execute();
@@ -98,7 +100,7 @@ if (isset($_GET["descargar"]) && $alumno !== null && count($materias) > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boleta de calificaciones</title>
+    <title><?= $soloAlumno ? "Mis calificaciones - Boleta" : "Boleta de calificaciones" ?></title>
     <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .firma { border-top: 1px solid #000000; padding-top: 4px; margin-top: 70px; }
@@ -117,34 +119,36 @@ if (isset($_GET["descargar"]) && $alumno !== null && count($materias) > 0) {
     <div class="card shadow">
 
         <div class="card-header bg-primary text-white text-center">
-            <h2>Boleta de calificaciones</h2>
+            <h2><?= $soloAlumno ? "Mis calificaciones (Boleta)" : "Boleta de calificaciones" ?></h2>
         </div>
 
         <div class="card-body">
 
-            <form method="GET" class="row g-3 mb-4 no-imprimir">
-                <div class="col-md-8">
-                    <label class="form-label">Alumno</label>
-                    <select name="id_alumno" class="form-select" required>
-                        <option value="">Selecciona un alumno...</option>
-                        <?php foreach ($alumnos as $a) { ?>
-                            <option value="<?= $a["ID_ALUMNOS"] ?>" <?= $idAlumno == $a["ID_ALUMNOS"] ? "selected" : "" ?>>
-                                <?= h($a["MATRICULA"] . " - " . $a["NOMBRE_COMPLETO"]) ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-secondary">Generar boleta</button>
-                </div>
-            </form>
+            <?php if (!$soloAlumno) { ?>
+                <form method="GET" class="row g-3 mb-4 no-imprimir">
+                    <div class="col-md-8">
+                        <label class="form-label">Alumno</label>
+                        <select name="id_alumno" class="form-select" required>
+                            <option value="">Selecciona un alumno...</option>
+                            <?php foreach ($alumnos as $a) { ?>
+                                <option value="<?= $a["ID_ALUMNOS"] ?>" <?= $idAlumno == $a["ID_ALUMNOS"] ? "selected" : "" ?>>
+                                    <?= h($a["MATRICULA"] . " - " . $a["NOMBRE_COMPLETO"]) ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-secondary">Generar boleta</button>
+                    </div>
+                </form>
+            <?php } ?>
 
             <?php if ($idAlumno > 0 && $alumno === null) { ?>
                 <div class="alert alert-warning">No se encontró el alumno seleccionado.</div>
             <?php } ?>
 
             <?php if ($alumno !== null) { ?>
-                <hr class="no-imprimir">
+                <?php if (!$soloAlumno) { ?><hr class="no-imprimir"><?php } ?>
 
                 <table class="table table-sm table-borderless w-auto mb-3">
                     <tr><th class="pe-3">Alumno</th><td><?= h($alumno["NOMBRE_COMPLETO"]) ?></td></tr>
@@ -166,7 +170,7 @@ if (isset($_GET["descargar"]) && $alumno !== null && count($materias) > 0) {
                         </thead>
                         <tbody>
                             <?php if (count($materias) === 0) { ?>
-                                <tr><td colspan="<?= count($unidades) + 4 ?>" class="text-center text-muted">Este alumno no tiene materias asignadas.</td></tr>
+                                <tr><td colspan="<?= count($unidades) + 4 ?>" class="text-center text-muted">Aún no tienes materias asignadas.</td></tr>
                             <?php } ?>
                             <?php foreach ($materias as $m) { ?>
                                 <tr>
@@ -207,7 +211,7 @@ if (isset($_GET["descargar"]) && $alumno !== null && count($materias) > 0) {
                 <?php if (count($materias) > 0) { ?>
                     <div class="no-imprimir mt-4">
                         <button type="button" class="btn btn-primary" onclick="window.print()">Imprimir boleta</button>
-                        <a href="?id_alumno=<?= $idAlumno ?>&descargar=1" class="btn btn-success">Descargar Excel</a>
+                        <a href="<?= $soloAlumno ? "?descargar=1" : "?id_alumno=" . $idAlumno . "&descargar=1" ?>" class="btn btn-success">Descargar Excel</a>
                     </div>
                 <?php } ?>
             <?php } ?>

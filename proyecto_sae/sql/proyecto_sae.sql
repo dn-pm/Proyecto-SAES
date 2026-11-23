@@ -99,7 +99,7 @@ CREATE TABLE calificaciones (
 );
 
 -- =====================================================================
---  USUARIOS Y PUESTOS (para la pantalla de inicio de sesión)
+--  USUARIOS Y PUESTOS (JERARQUÍA DE ACCESO)
 -- =====================================================================
 
 CREATE TABLE puesto (
@@ -109,17 +109,23 @@ CREATE TABLE puesto (
 );
 
 CREATE TABLE usuarios (
-    ID_USER      INT AUTO_INCREMENT PRIMARY KEY,
-    NOMBREUSER   VARCHAR(50) NOT NULL,
-    PWUSER       VARCHAR(40) NOT NULL,   -- hash MD5 (32 caracteres) o SHA1 (40 caracteres)
-    PUESTO       INT NOT NULL,           -- llave foránea a puesto.ID_PUESTO
-    STATUS_USER  VARCHAR(4)  NOT NULL DEFAULT 'ALTA',
-    UNIQUE KEY uq_nombreuser (NOMBREUSER),   -- no puede haber dos usuarios con el mismo nombre
-    CONSTRAINT fk_usuarios_puesto FOREIGN KEY (PUESTO) REFERENCES puesto (ID_PUESTO)
+    ID_USER        INT AUTO_INCREMENT PRIMARY KEY,
+    NOMBREUSER     VARCHAR(50) NOT NULL,
+    PWUSER         VARCHAR(40) NOT NULL,   -- hash MD5 (32 caracteres) o SHA1 (40 caracteres)
+    PUESTO         INT NOT NULL,           -- 1: Administrador, 2: Maestro, 3: Alumno
+    ID_PROFESORES  INT NULL DEFAULT NULL,  -- enlace opcional cuando PUESTO = 2 (Maestro)
+    ID_ALUMNOS     INT NULL DEFAULT NULL,  -- enlace opcional cuando PUESTO = 3 (Alumno)
+    STATUS_USER    VARCHAR(4)  NOT NULL DEFAULT 'ALTA',
+    UNIQUE KEY uq_nombreuser (NOMBREUSER),
+    UNIQUE KEY uq_usuario_profesor (ID_PROFESORES),
+    UNIQUE KEY uq_usuario_alumno (ID_ALUMNOS),
+    CONSTRAINT fk_usuarios_puesto FOREIGN KEY (PUESTO) REFERENCES puesto (ID_PUESTO),
+    CONSTRAINT fk_usuarios_profesor FOREIGN KEY (ID_PROFESORES) REFERENCES profesores (ID_PROFESORES) ON DELETE SET NULL,
+    CONSTRAINT fk_usuarios_alumno FOREIGN KEY (ID_ALUMNOS) REFERENCES alumnos (ID_ALUMNOS) ON DELETE SET NULL
 );
 
 -- =====================================================================
---  DATOS DE EJEMPLO (8 por tabla)
+--  DATOS DE EJEMPLO 
 -- =====================================================================
 
 INSERT INTO alumnos (ID_ALUMNOS, MATRICULA, NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, DOMICILIO, CORREO, TELEFONO, ESTATUS) VALUES
@@ -172,7 +178,7 @@ INSERT INTO unidad (ID_UNIDAD, DESCRIPCION, ESTATUS) VALUES
 (7, 'Unidad 7 - Proyecto parcial', 'ALTA'),
 (8, 'Unidad 8 - Proyecto final',   'ALTA');
 
--- Inscripciones a grupos (una está en BAJA para ver ambos estatus)
+-- Inscripciones a grupos
 INSERT INTO grupo_alumno (ID_GRUPOS, ID_ALUMNOS, ESTATUS) VALUES
 (1, 1, 'ALTA'),
 (1, 2, 'ALTA'),
@@ -194,9 +200,6 @@ INSERT INTO asignatura (ID_ASIGNATURA, ID_MATERIAS, ID_ALUMNOS, ID_PROFESORES) V
 (7, 5, 5, 5),
 (8, 6, 6, 6);
 
--- Calificaciones (alumno, materia, calificación, unidad).
--- Alumno 1: Programación I y II | Alumno 2: Programación I y Bases de Datos.
--- Quedan libres las unidades 3 a 8 y los demás alumnos para probar la captura.
 INSERT INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD) VALUES
 (1, 1, 9.5, 1),
 (1, 1, 9.0, 2),
@@ -207,25 +210,21 @@ INSERT INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD) VA
 (2, 3, 7.5, 1),
 (2, 3, 7.0, 2);
 
--- Puestos y usuarios de ejemplo.
--- La contraseña de cada usuario es su nombre de usuario + 123 (por ejemplo admin / admin123)
--- y se guarda encriptada con SHA1, igual que lo hace el formulario de registro.
+-- Catálogo de puestos (jerarquía)
 INSERT INTO puesto (ID_PUESTO, DESCRIPCION_PUESTO, STATUS_PUESTO) VALUES
-(1, 'Administrador',          'ALTA'),
-(2, 'Director',               'ALTA'),
-(3, 'Subdirector',            'ALTA'),
-(4, 'Control escolar',        'ALTA'),
-(5, 'Coordinador académico',  'ALTA'),
-(6, 'Docente',                'ALTA'),
-(7, 'Capturista',             'ALTA'),
-(8, 'Prefecto',               'ALTA');
+(1, 'Administrador', 'ALTA'),
+(2, 'Maestro',       'ALTA'),
+(3, 'Alumno',        'ALTA');
 
-INSERT INTO usuarios (ID_USER, NOMBREUSER, PWUSER, PUESTO, STATUS_USER) VALUES
-(1, 'admin',          SHA1('admin123'),          1, 'ALTA'),
-(2, 'director',       SHA1('director123'),       2, 'ALTA'),
-(3, 'subdirector',    SHA1('subdirector123'),    3, 'ALTA'),
-(4, 'controlescolar', SHA1('controlescolar123'), 4, 'ALTA'),
-(5, 'coordinador',    SHA1('coordinador123'),    5, 'ALTA'),
-(6, 'docente',        SHA1('docente123'),        6, 'ALTA'),
-(7, 'capturista',     SHA1('capturista123'),     7, 'ALTA'),
-(8, 'prefecto',       SHA1('prefecto123'),       8, 'ALTA');
+-- Usuarios de prueba (contraseñas cifradas con SHA1):
+--   admin      / admin123  (Administrador - acceso total)
+--   PROF001    / prof123   (Maestro Roberto Sánchez Peña)
+--   PROF002    / prof123   (Maestro Laura Gómez Ibarra)
+--   TIC2026001 / alum123   (Alumno Carlos Hernández López)
+--   TIC2026002 / alum123   (Alumna María García Ruiz)
+INSERT INTO usuarios (ID_USER, NOMBREUSER, PWUSER, PUESTO, ID_PROFESORES, ID_ALUMNOS, STATUS_USER) VALUES
+(1, 'admin',      SHA1('admin123'), 1, NULL, NULL, 'ALTA'),
+(2, 'PROF001',    SHA1('prof123'),  2, 1,    NULL, 'ALTA'),
+(3, 'PROF002',    SHA1('prof123'),  2, 2,    NULL, 'ALTA'),
+(4, 'TIC2026001', SHA1('alum123'),  3, NULL, 1,    'ALTA'),
+(5, 'TIC2026002', SHA1('alum123'),  3, NULL, 2,    'ALTA');

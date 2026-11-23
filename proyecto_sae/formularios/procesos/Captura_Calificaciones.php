@@ -1,11 +1,14 @@
 <?php
 require_once __DIR__ . "/../../config/conexion.php";
+requerirRol(['ADMINISTRADOR', 'MAESTRO']);
 
 function h($t) { return htmlspecialchars((string)$t); }
 
 $modo  = (isset($_GET["modo"]) && $_GET["modo"] === "masiva") ? "masiva" : "individual";
 $exito = "";
 $error = "";
+$soloMaestro = esMaestro();
+$idProfesorSesion = $soloMaestro ? (int)$_SESSION["id_profesor"] : 0;
 
 // ---------- Guardado (individual y masivo usan el mismo arreglo cal[ID_ALUMNO]) ----------
 if (isset($_POST["guardar"])) {
@@ -15,11 +18,15 @@ if (isset($_POST["guardar"])) {
     $invalidas = 0;
 
     try {
-        // INSERT IGNORE: si el alumno ya tiene calificación en esa materia y unidad, no se modifica.
-        // El SELECT ... FROM asignatura solo inserta si el alumno tiene asignada la materia.
-        $sql = "INSERT IGNORE INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD)
-                SELECT ?, ?, ?, ? FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? LIMIT 1";
-        $stmt = $conexion->prepare($sql);
+        if ($soloMaestro) {
+            $sql = "INSERT IGNORE INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD)
+                    SELECT ?, ?, ?, ? FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? AND ID_PROFESORES = ? LIMIT 1";
+            $stmt = $conexion->prepare($sql);
+        } else {
+            $sql = "INSERT IGNORE INTO calificaciones (ID_ALUMNOS, ID_MATERIAS, CALIFICACION, ID_UNIDAD)
+                    SELECT ?, ?, ?, ? FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? LIMIT 1";
+            $stmt = $conexion->prepare($sql);
+        }
 
         foreach ($_POST["cal"] ?? [] as $idAlumnoPost => $valor) {
             $valor = trim($valor);
@@ -32,7 +39,11 @@ if (isset($_POST["guardar"])) {
             }
             $idAlumnoPost = (int)$idAlumnoPost;
             $calif = (float)$valor;
-            $stmt->bind_param("iidiii", $idAlumnoPost, $idMateriaPost, $calif, $idUnidadPost, $idAlumnoPost, $idMateriaPost);
+            if ($soloMaestro) {
+                $stmt->bind_param("iidiiii", $idAlumnoPost, $idMateriaPost, $calif, $idUnidadPost, $idAlumnoPost, $idMateriaPost, $idProfesorSesion);
+            } else {
+                $stmt->bind_param("iidiii", $idAlumnoPost, $idMateriaPost, $calif, $idUnidadPost, $idAlumnoPost, $idMateriaPost);
+            }
             $stmt->execute();
             $guardadas += $stmt->affected_rows;
         }
@@ -63,16 +74,29 @@ if (isset($_POST["corregir_guardar"])) {
     if ($valor === "" || !is_numeric($valor) || $valor < 0 || $valor > 10) {
         $error = "La calificación debe ser un número entre 0 y 10.";
     } else {
-        try {
-            $calif = (float)$valor;
-            $stmt = $conexion->prepare("UPDATE calificaciones SET CALIFICACION = ? WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? AND ID_UNIDAD = ?");
-            $stmt->bind_param("diii", $calif, $idAlumnoPost, $idMateriaPost, $idUnidadPost);
-            $stmt->execute();
-            $stmt->close();
-            $exito = "Calificación corregida correctamente.";
-            $correccionOk = true;
-        } catch (mysqli_sql_exception $e) {
-            $error = "Ocurrió un error al corregir: " . $e->getMessage();
+        $permitido = true;
+        if ($soloMaestro) {
+            $chk = $conexion->prepare("SELECT 1 FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? AND ID_PROFESORES = ? LIMIT 1");
+            $chk->bind_param("iii", $idAlumnoPost, $idMateriaPost, $idProfesorSesion);
+            $chk->execute();
+            $permitido = $chk->get_result()->fetch_assoc() !== null;
+            $chk->close();
+        }
+
+        if (!$permitido) {
+            $error = "No tienes permiso para modificar la calificación de este alumno o materia.";
+        } else {
+            try {
+                $calif = (float)$valor;
+                $stmt = $conexion->prepare("UPDATE calificaciones SET CALIFICACION = ? WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? AND ID_UNIDAD = ?");
+                $stmt->bind_param("diii", $calif, $idAlumnoPost, $idMateriaPost, $idUnidadPost);
+                $stmt->execute();
+                $stmt->close();
+                $exito = "Calificación corregida correctamente.";
+                $correccionOk = true;
+            } catch (mysqli_sql_exception $e) {
+                $error = "Ocurrió un error al corregir: " . $e->getMessage();
+            }
         }
     }
 }
@@ -85,7 +109,22 @@ $idAlumno  = (int)($_GET["id_alumno"] ?? 0);
 $idGrupo   = (int)($_GET["id_grupo"] ?? 0);
 
 $unidades = $conexion->query("SELECT ID_UNIDAD, DESCRIPCION FROM unidad WHERE ESTATUS = 'ALTA' ORDER BY ID_UNIDAD")->fetch_all(MYSQLI_ASSOC);
-$materias = $conexion->query("SELECT ID_MATERIAS, CLAVE_MATERIA, NOMBRE_MATERIA FROM materias WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_MATERIA")->fetch_all(MYSQLI_ASSOC);
+
+if ($soloMaestro) {
+    $stmt = $conexion->prepare(
+        "SELECT DISTINCT m.ID_MATERIAS, m.CLAVE_MATERIA, m.NOMBRE_MATERIA
+         FROM materias m
+         INNER JOIN asignatura s ON s.ID_MATERIAS = m.ID_MATERIAS
+         WHERE m.ESTATUS = 'ALTA' AND s.ID_PROFESORES = ?
+         ORDER BY m.NOMBRE_MATERIA"
+    );
+    $stmt->bind_param("i", $idProfesorSesion);
+    $stmt->execute();
+    $materias = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    $materias = $conexion->query("SELECT ID_MATERIAS, CLAVE_MATERIA, NOMBRE_MATERIA FROM materias WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_MATERIA")->fetch_all(MYSQLI_ASSOC);
+}
 
 $alumnos = [];
 $grupos = [];
@@ -94,12 +133,30 @@ $calActual = null;
 $filas = [];
 
 if ($modo === "individual") {
-    $alumnos = $conexion->query("SELECT ID_ALUMNOS, MATRICULA, CONCAT(NOMBRE, ' ', APELLIDO_PATERNO, ' ', APELLIDO_MATERNO) AS NOMBRE_COMPLETO FROM alumnos WHERE ESTATUS = 'ALTA' ORDER BY APELLIDO_PATERNO, NOMBRE")->fetch_all(MYSQLI_ASSOC);
+    if ($soloMaestro) {
+$stmt = $conexion->prepare(
+            "SELECT DISTINCT a.ID_ALUMNOS, a.MATRICULA, a.APELLIDO_PATERNO, a.NOMBRE, CONCAT(a.NOMBRE, ' ', a.APELLIDO_PATERNO, ' ', a.APELLIDO_MATERNO) AS NOMBRE_COMPLETO
+             FROM alumnos a
+             INNER JOIN asignatura s ON s.ID_ALUMNOS = a.ID_ALUMNOS
+             WHERE a.ESTATUS = 'ALTA' AND s.ID_PROFESORES = ?
+             ORDER BY a.APELLIDO_PATERNO, a.NOMBRE"
+        );
+        $stmt->bind_param("i", $idProfesorSesion);
+        $stmt->execute();
+        $alumnos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+    } else {
+        $alumnos = $conexion->query("SELECT ID_ALUMNOS, MATRICULA, CONCAT(NOMBRE, ' ', APELLIDO_PATERNO, ' ', APELLIDO_MATERNO) AS NOMBRE_COMPLETO FROM alumnos WHERE ESTATUS = 'ALTA' ORDER BY APELLIDO_PATERNO, NOMBRE")->fetch_all(MYSQLI_ASSOC);
+    }
 
     if ($idAlumno > 0 && $idMateria > 0 && $idUnidad > 0) {
-        // ¿El alumno tiene asignada esa materia?
-        $stmt = $conexion->prepare("SELECT ID_ASIGNATURA FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ?");
-        $stmt->bind_param("ii", $idAlumno, $idMateria);
+        if ($soloMaestro) {
+            $stmt = $conexion->prepare("SELECT ID_ASIGNATURA FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ? AND ID_PROFESORES = ?");
+            $stmt->bind_param("iii", $idAlumno, $idMateria, $idProfesorSesion);
+        } else {
+            $stmt = $conexion->prepare("SELECT ID_ASIGNATURA FROM asignatura WHERE ID_ALUMNOS = ? AND ID_MATERIAS = ?");
+            $stmt->bind_param("ii", $idAlumno, $idMateria);
+        }
         $stmt->execute();
         $asignada = $stmt->get_result()->fetch_assoc() !== null;
         $stmt->close();
@@ -114,10 +171,24 @@ if ($modo === "individual") {
         }
     }
 } else {
-    $grupos = $conexion->query("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_GRUPO")->fetch_all(MYSQLI_ASSOC);
+    if ($soloMaestro) {
+        $stmt = $conexion->prepare(
+            "SELECT DISTINCT g.ID_GRUPOS, g.NOMBRE_GRUPO
+             FROM grupos g
+             INNER JOIN grupo_alumno ga ON ga.ID_GRUPOS = g.ID_GRUPOS AND ga.ESTATUS = 'ALTA'
+             INNER JOIN asignatura s ON s.ID_ALUMNOS = ga.ID_ALUMNOS
+             WHERE g.ESTATUS = 'ALTA' AND s.ID_PROFESORES = ?
+             ORDER BY g.NOMBRE_GRUPO"
+        );
+        $stmt->bind_param("i", $idProfesorSesion);
+        $stmt->execute();
+        $grupos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+    } else {
+        $grupos = $conexion->query("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_GRUPO")->fetch_all(MYSQLI_ASSOC);
+    }
 
     if ($idMateria > 0 && $idUnidad > 0) {
-        // Alumnos activos con esa materia asignada (y, si se eligió, de ese grupo)
         $joinGrupo = "";
         $tipos = "";
         $params = [];
@@ -130,6 +201,13 @@ if ($modo === "individual") {
         $params[] = $idUnidad;
         $params[] = $idMateria;
 
+        $filtroProfesor = "";
+        if ($soloMaestro) {
+            $filtroProfesor = " AND s.ID_PROFESORES = ?";
+            $tipos .= "i";
+            $params[] = $idProfesorSesion;
+        }
+
         $sql = "SELECT a.ID_ALUMNOS, a.MATRICULA,
                        CONCAT(a.NOMBRE, ' ', a.APELLIDO_PATERNO, ' ', a.APELLIDO_MATERNO) AS NOMBRE_COMPLETO,
                        c.CALIFICACION
@@ -137,7 +215,7 @@ if ($modo === "individual") {
                 INNER JOIN alumnos a ON a.ID_ALUMNOS = s.ID_ALUMNOS AND a.ESTATUS = 'ALTA'
                 $joinGrupo
                 LEFT JOIN calificaciones c ON c.ID_ALUMNOS = a.ID_ALUMNOS AND c.ID_MATERIAS = s.ID_MATERIAS AND c.ID_UNIDAD = ?
-                WHERE s.ID_MATERIAS = ?
+                WHERE s.ID_MATERIAS = ? $filtroProfesor
                 ORDER BY a.APELLIDO_PATERNO, a.NOMBRE";
         $stmt = $conexion->prepare($sql);
         $stmt->bind_param($tipos, ...$params);
@@ -187,9 +265,12 @@ if ($modo === "individual") {
                 <div class="alert alert-warning">Primero registra al menos una unidad en Registros &gt; Unidades.</div>
             <?php } ?>
 
+            <?php if ($soloMaestro && count($materias) === 0) { ?>
+                <div class="alert alert-info">Aún no tienes materias con alumnos asignados.</div>
+            <?php } ?>
+
             <?php if ($modo === "individual") { ?>
 
-                <!-- Selección de alumno, materia y unidad -->
                 <form method="GET" class="row g-3 mb-4">
                     <input type="hidden" name="modo" value="individual">
                     <div class="col-md-4">
@@ -198,7 +279,7 @@ if ($modo === "individual") {
                             <option value="">Selecciona un alumno...</option>
                             <?php foreach ($alumnos as $a) { ?>
                                 <option value="<?= $a["ID_ALUMNOS"] ?>" <?= $idAlumno == $a["ID_ALUMNOS"] ? "selected" : "" ?>>
-                                    <?= h($a["ID_ALUMNOS"] . " - " . $a["MATRICULA"] . " - " . $a["NOMBRE_COMPLETO"]) ?>
+                                    <?= h($a["MATRICULA"] . " - " . $a["NOMBRE_COMPLETO"]) ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -232,7 +313,9 @@ if ($modo === "individual") {
 
                 <?php if ($idAlumno > 0 && $idMateria > 0 && $idUnidad > 0 && !$asignada) { ?>
                     <div class="alert alert-warning">
-                        Ese alumno no tiene asignada esa materia. Asígnala primero en Procesos &gt; Asignación de materias.
+                        <?= $soloMaestro
+                            ? "Ese alumno no tiene asignada esa materia contigo."
+                            : "Ese alumno no tiene asignada esa materia. Asígnala primero en Procesos > Asignación de materias." ?>
                     </div>
                 <?php } ?>
 
@@ -245,21 +328,18 @@ if ($modo === "individual") {
 
                         <div class="row g-3">
                             <?php if ($calActual === null) { ?>
-                                <!-- Campo editable: solo aparece mientras no hay calificación -->
                                 <div class="col-md-4">
                                     <label class="form-label">Calificación (capturar)</label>
                                     <input type="number" name="cal[<?= $idAlumno ?>]" class="form-control" min="0" max="10" step="0.1" required>
                                 </div>
                             <?php } ?>
 
-                            <!-- Campo no editable: queda con la calificación una vez guardada -->
                             <div class="col-md-4">
                                 <label class="form-label">Calificación registrada</label>
                                 <input type="text" class="form-control" value="<?= h($calActual) ?>" readonly>
                             </div>
 
                             <?php if ($calActual !== null && $corregir) { ?>
-                                <!-- Campo de corrección: solo aparece al presionar "Corregir calificación" -->
                                 <div class="col-md-4">
                                     <label class="form-label">Nueva calificación</label>
                                     <input type="number" name="nueva_cal" class="form-control" min="0" max="10" step="0.1" value="<?= h($calActual) ?>" required>
@@ -281,7 +361,6 @@ if ($modo === "individual") {
 
             <?php } else { ?>
 
-                <!-- Selección de materia, unidad y grupo -->
                 <form method="GET" class="row g-3 mb-4">
                     <input type="hidden" name="modo" value="masiva">
                     <div class="col-md-4">
@@ -309,7 +388,7 @@ if ($modo === "individual") {
                     <div class="col-md-3">
                         <label class="form-label">Grupo (opcional)</label>
                         <select name="id_grupo" class="form-select">
-                            <option value="0">Todos los grupos</option>
+                            <option value="0">Todos mis grupos</option>
                             <?php foreach ($grupos as $g) { ?>
                                 <option value="<?= $g["ID_GRUPOS"] ?>" <?= $idGrupo == $g["ID_GRUPOS"] ? "selected" : "" ?>>
                                     <?= h($g["NOMBRE_GRUPO"]) ?>

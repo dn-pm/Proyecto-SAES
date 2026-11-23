@@ -1,6 +1,7 @@
 <?php
 
 require_once "../../config/conexion.php";
+requerirRol(['ADMINISTRADOR']);
 
 // Variable para saber si se guardaron los datos
 $mostrarDatos = false;

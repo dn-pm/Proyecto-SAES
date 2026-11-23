@@ -1,45 +1,98 @@
 <?php
 require_once __DIR__ . "/../../config/conexion.php";
 require_once __DIR__ . "/reportes_helper.php";
+requerirRol(['ADMINISTRADOR', 'MAESTRO']);
 
 $idGrupo = (int)($_GET["id_grupo"] ?? 0);
+$soloMaestro = esMaestro();
+$idProfesorSesion = $soloMaestro ? (int)$_SESSION["id_profesor"] : 0;
 
-$grupos = $conexion->query("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_GRUPO")->fetch_all(MYSQLI_ASSOC);
+if ($soloMaestro) {
+    $stmt = $conexion->prepare(
+        "SELECT DISTINCT g.ID_GRUPOS, g.NOMBRE_GRUPO
+         FROM grupos g
+         INNER JOIN grupo_alumno ga ON ga.ID_GRUPOS = g.ID_GRUPOS AND ga.ESTATUS = 'ALTA'
+         INNER JOIN asignatura s ON s.ID_ALUMNOS = ga.ID_ALUMNOS
+         WHERE g.ESTATUS = 'ALTA' AND s.ID_PROFESORES = ?
+         ORDER BY g.NOMBRE_GRUPO"
+    );
+    $stmt->bind_param("i", $idProfesorSesion);
+    $stmt->execute();
+    $grupos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+} else {
+    $grupos = $conexion->query("SELECT ID_GRUPOS, NOMBRE_GRUPO FROM grupos WHERE ESTATUS = 'ALTA' ORDER BY NOMBRE_GRUPO")->fetch_all(MYSQLI_ASSOC);
+}
 
 $grupo = null;
 $filas = [];
 
 if ($idGrupo > 0) {
-    $stmt = $conexion->prepare("SELECT ID_GRUPOS, NOMBRE_GRUPO, TURNO, SEMESTRE, DESCRIPCION FROM grupos WHERE ID_GRUPOS = ?");
-    $stmt->bind_param("i", $idGrupo);
-    $stmt->execute();
-    $grupo = $stmt->get_result()->fetch_assoc() ?: null;
-    $stmt->close();
+    $permitido = true;
+    if ($soloMaestro) {
+        $permitido = false;
+        foreach ($grupos as $gItem) {
+            if ((int)$gItem["ID_GRUPOS"] === $idGrupo) {
+                $permitido = true;
+                break;
+            }
+        }
+    }
+
+    if ($permitido) {
+        $stmt = $conexion->prepare("SELECT ID_GRUPOS, NOMBRE_GRUPO, TURNO, SEMESTRE, DESCRIPCION FROM grupos WHERE ID_GRUPOS = ?");
+        $stmt->bind_param("i", $idGrupo);
+        $stmt->execute();
+        $grupo = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+    }
 
     if ($grupo !== null) {
-        $stmt = $conexion->prepare(
-            "SELECT a.MATRICULA, a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE, a.CORREO, a.TELEFONO
-             FROM grupo_alumno ga
-             INNER JOIN alumnos a ON a.ID_ALUMNOS = ga.ID_ALUMNOS
-             WHERE ga.ID_GRUPOS = ? AND ga.ESTATUS = 'ALTA' AND a.ESTATUS = 'ALTA'
-             ORDER BY a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE"
-        );
-        $stmt->bind_param("i", $idGrupo);
+        if ($soloMaestro) {
+            $stmt = $conexion->prepare(
+                "SELECT a.MATRICULA, a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE, a.CORREO, a.TELEFONO,
+                        GROUP_CONCAT(DISTINCT m.NOMBRE_MATERIA ORDER BY m.NOMBRE_MATERIA SEPARATOR ', ') AS MATERIAS
+                 FROM grupo_alumno ga
+                 INNER JOIN alumnos a ON a.ID_ALUMNOS = ga.ID_ALUMNOS
+                 INNER JOIN asignatura s ON s.ID_ALUMNOS = a.ID_ALUMNOS AND s.ID_PROFESORES = ?
+                 INNER JOIN materias m ON m.ID_MATERIAS = s.ID_MATERIAS
+                 WHERE ga.ID_GRUPOS = ? AND ga.ESTATUS = 'ALTA' AND a.ESTATUS = 'ALTA'
+                 GROUP BY a.ID_ALUMNOS, a.MATRICULA, a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE, a.CORREO, a.TELEFONO
+                 ORDER BY a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE"
+            );
+            $stmt->bind_param("ii", $idProfesorSesion, $idGrupo);
+        } else {
+            $stmt = $conexion->prepare(
+                "SELECT a.MATRICULA, a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE, a.CORREO, a.TELEFONO
+                 FROM grupo_alumno ga
+                 INNER JOIN alumnos a ON a.ID_ALUMNOS = ga.ID_ALUMNOS
+                 WHERE ga.ID_GRUPOS = ? AND ga.ESTATUS = 'ALTA' AND a.ESTATUS = 'ALTA'
+                 ORDER BY a.APELLIDO_PATERNO, a.APELLIDO_MATERNO, a.NOMBRE"
+            );
+            $stmt->bind_param("i", $idGrupo);
+        }
         $stmt->execute();
         $filas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
     }
 }
 
-// ---------- Descarga en Excel (antes de imprimir HTML) ----------
+// ---------- Descarga en Excel ----------
 if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
     $datos = [];
     $datos[] = ["Lista de alumnos por grupo"];
     $datos[] = ["Grupo: " . $grupo["NOMBRE_GRUPO"] . "   Turno: " . $grupo["TURNO"] . "   Semestre: " . $grupo["SEMESTRE"]];
     $datos[] = [];
-    $datos[] = ["NO.", "MATRICULA", "APELLIDO PATERNO", "APELLIDO MATERNO", "NOMBRE", "CORREO", "TELEFONO"];
-    foreach ($filas as $n => $f) {
-        $datos[] = [$n + 1, $f["MATRICULA"], $f["APELLIDO_PATERNO"], $f["APELLIDO_MATERNO"], $f["NOMBRE"], $f["CORREO"], $f["TELEFONO"]];
+    if ($soloMaestro) {
+        $datos[] = ["NO.", "MATRICULA", "APELLIDO PATERNO", "APELLIDO MATERNO", "NOMBRE", "CORREO", "TELEFONO", "MATERIAS"];
+        foreach ($filas as $n => $f) {
+            $datos[] = [$n + 1, $f["MATRICULA"], $f["APELLIDO_PATERNO"], $f["APELLIDO_MATERNO"], $f["NOMBRE"], $f["CORREO"], $f["TELEFONO"], $f["MATERIAS"]];
+        }
+    } else {
+        $datos[] = ["NO.", "MATRICULA", "APELLIDO PATERNO", "APELLIDO MATERNO", "NOMBRE", "CORREO", "TELEFONO"];
+        foreach ($filas as $n => $f) {
+            $datos[] = [$n + 1, $f["MATRICULA"], $f["APELLIDO_PATERNO"], $f["APELLIDO_MATERNO"], $f["NOMBRE"], $f["CORREO"], $f["TELEFONO"]];
+        }
     }
     enviarExcel($datos, "alumnos_grupo_" . nombreArchivo($grupo["NOMBRE_GRUPO"]), 3, [0, 1]);
 }
@@ -49,7 +102,7 @@ if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte: alumnos por grupo</title>
+    <title><?= $soloMaestro ? "Mis grupos" : "Reporte: alumnos por grupo" ?></title>
     <link href="<?= $base ?>/assets/css/bootstrap.min.css" rel="stylesheet">
     <style>
         @media print {
@@ -67,14 +120,18 @@ if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
     <div class="card shadow">
 
         <div class="card-header bg-primary text-white text-center">
-            <h2>Lista de alumnos por grupo</h2>
+            <h2><?= $soloMaestro ? "Mis grupos y alumnos" : "Lista de alumnos por grupo" ?></h2>
         </div>
 
         <div class="card-body">
 
+            <?php if ($soloMaestro && count($grupos) === 0) { ?>
+                <div class="alert alert-info">Aún no tienes grupos con alumnos asignados.</div>
+            <?php } ?>
+
             <form method="GET" class="row g-3 mb-4 no-imprimir">
                 <div class="col-md-8">
-                    <label class="form-label">Grupo</label>
+                    <label class="form-label"><?= $soloMaestro ? "Mis grupos" : "Grupo" ?></label>
                     <select name="id_grupo" class="form-select" required>
                         <option value="">Selecciona un grupo...</option>
                         <?php foreach ($grupos as $g) { ?>
@@ -90,7 +147,7 @@ if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
             </form>
 
             <?php if ($idGrupo > 0 && $grupo === null) { ?>
-                <div class="alert alert-warning">No se encontró el grupo seleccionado.</div>
+                <div class="alert alert-warning">No tienes acceso a ese grupo o no se encontró.</div>
             <?php } ?>
 
             <?php if ($grupo !== null) { ?>
@@ -111,11 +168,12 @@ if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
                             <tr>
                                 <th>No.</th><th>Matrícula</th><th>Apellido paterno</th><th>Apellido materno</th>
                                 <th>Nombre</th><th>Correo</th><th>Teléfono</th>
+                                <?php if ($soloMaestro) { ?><th>Materias contigo</th><?php } ?>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (count($filas) === 0) { ?>
-                                <tr><td colspan="7" class="text-center text-muted">Este grupo no tiene alumnos inscritos.</td></tr>
+                                <tr><td colspan="<?= $soloMaestro ? 8 : 7 ?>" class="text-center text-muted">Este grupo no tiene alumnos inscritos.</td></tr>
                             <?php } ?>
                             <?php foreach ($filas as $n => $f) { ?>
                                 <tr>
@@ -126,6 +184,7 @@ if (isset($_GET["descargar"]) && $grupo !== null && count($filas) > 0) {
                                     <td><?= h($f["NOMBRE"]) ?></td>
                                     <td><?= h($f["CORREO"]) ?></td>
                                     <td><?= h($f["TELEFONO"]) ?></td>
+                                    <?php if ($soloMaestro) { ?><td><?= h($f["MATERIAS"]) ?></td><?php } ?>
                                 </tr>
                             <?php } ?>
                         </tbody>

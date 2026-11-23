@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../../config/conexion.php";
+requerirRol(['ADMINISTRADOR']);
 
 $mostrarDatos = false;
 $error = "";

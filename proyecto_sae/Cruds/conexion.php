@@ -1,9 +1,9 @@
 <?php
-$base = preg_replace('#/(Cruds|formularios)/.*$#i', '', $_SERVER['SCRIPT_NAME']);
+require_once __DIR__ . "/../config/auth.php";
 
-$servidor = "localhost";
-$usuario  = "root";
-$password = "";
+$servidor   = "localhost";
+$usuario    = "root";
+$password   = "";
 $base_datos = "proyecto_sae";
 
 $conexion = new mysqli($servidor, $usuario, $password, $base_datos);

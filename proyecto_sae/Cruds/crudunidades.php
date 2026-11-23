@@ -1,5 +1,6 @@
 <?php
 $mysqli = include "conexion.php";
+requerirRol(['ADMINISTRADOR']);
 
 // ---------- BAJA ----------
 if (isset($_GET["baja"])) {
